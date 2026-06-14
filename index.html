@@ -11,40 +11,100 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script type="module">
+        // Firebase configuration - FIXED DATABASE URL
 const firebaseConfig = {
     apiKey: "AIzaSyCZlNcwakBAlUPVfyaBsRasbYv6kOV4Ec4",
     authDomain: "kltreport.firebaseapp.com",
-    databaseURL: "https://kltreport-default-rtdb.asia-southeast1.firebasedatabase.app", 
+    databaseURL: "https://kltreport-default-rtdb.asia-southeast1.firebasedatabase.app", // ✅ เปลี่ยนเป็น URL นี้
     projectId: "kltreport",
     storageBucket: "kltreport.firebasestorage.app",
     messagingSenderId: "13996823947",
-    appId: "1:13996823947:web:06033d8452a7bb5996cb8e",
-    measurementId: "G-JNKN7SBWSS"
+    appId: "1:13996823947:web:06033d8452a7bb5996cb8e"
 };
 
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getDatabase, ref, push, set, onValue, serverTimestamp, get, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
 
-        window.db = database;
-        window.ref = ref;
-        window.push = push;
-        window.set = set;
-        window.onValue = onValue;
-        window.serverTimestamp = serverTimestamp;
-        window.get = get;
-        window.remove = remove;
-        window.update = update;
+            window.db = database;
+            window.ref = ref;
+            window.push = push;
+            window.set = set;
+            window.onValue = onValue;
+            window.serverTimestamp = serverTimestamp;
+            window.get = get;
+            window.remove = remove;
+            window.update = update;
 
-        console.log("✅ Firebase initialized");
-        
-        const script = document.createElement('script');
-        script.src = 'script.js';
-        script.defer = true;
-        document.body.appendChild(script);
+            console.log("✅ Firebase initialized successfully");
+        } catch (error) {
+            console.error("❌ Firebase initialization error:", error);
+        }
     </script>
+    <style>
+        /* Additional styles for user management */
+        .role-hidden {
+            display: none !important;
+        }
+        .btn-small {
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .input-row input, .input-row select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .user-table th, .user-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .user-table th {
+            background-color: #f2f2f2;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div id="loginOverlay" class="login-overlay">
@@ -68,9 +128,10 @@ const firebaseConfig = {
                 </div>
                 <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
                 <div class="login-hint">
-                    <p><b>สำหรับทดสอบใช้งานครั้งแรก:</b></p>
-                    <p>Admin: admin / admin123</p>
-                    <p>User: user / user123</p>
+                    <p><b>📝 สำหรับทดสอบใช้งาน:</b></p>
+                    <p>👑 Admin: admin / admin123</p>
+                    <p>👤 User: user / user123</p>
+                    <p style="font-size: 12px; color: #888; margin-top: 8px;">⚠️ หากเข้าไม่ได้ รอระบบโหลดสักครู่</p>
                 </div>
             </form>
         </div>
@@ -180,7 +241,8 @@ const firebaseConfig = {
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
-                        </tbody>
+                        <tr><td colspan="4" style="text-align:center;">กำลังโหลด...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -194,6 +256,49 @@ const firebaseConfig = {
                     .catch(err => console.error('❌ Service Worker registration failed: ', err));
             });
         }
+        
+        // Fix for beforeinstallprompt warning - don't call preventDefault unnecessarily
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Store the event for later use
+            deferredPrompt = e;
+            console.log('📱 PWA install prompt available');
+            
+            // Show install button only if needed
+            if (!document.getElementById('pwaInstallBtn')) {
+                const installBtn = document.createElement('button');
+                installBtn.id = 'pwaInstallBtn';
+                installBtn.textContent = '📱 ติดตั้งแอป';
+                installBtn.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                    padding: 12px 20px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    font-size: 14px;
+                `;
+                installBtn.onclick = async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            console.log('PWA installed');
+                        }
+                        deferredPrompt = null;
+                        installBtn.remove();
+                    }
+                };
+                document.body.appendChild(installBtn);
+            }
+        });
     </script>
+    
+    <script src="script.js"></script>
 </body>
 </html>

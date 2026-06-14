@@ -44,25 +44,38 @@ window.handleLogin = async function() {
         return;
     }
 
+    // Show loading indicator
+    const loginBtn = document.querySelector('.login-btn');
+    const originalText = loginBtn.textContent;
+    loginBtn.textContent = '⏳ กำลังเข้าสู่ระบบ...';
+    loginBtn.disabled = true;
+
     try {
-        // ค้นหาบัญชีผู้ใช้ใน Firebase Realtime Database เส้นทาง users/username
+        // ตรวจสอบว่า Firebase พร้อมใช้งาน
+        if (!window.db) {
+            throw new Error('Firebase ยังไม่พร้อมใช้งาน กรุณารอสักครู่แล้วลองใหม่');
+        }
+
+        // ค้นหาบัญชีผู้ใช้ใน Firebase Realtime Database
         const userRef = window.ref(window.db, `users/${user}`);
         const snapshot = await window.get(userRef);
 
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            // ตรวจสอบความถูกต้องของรหัสผ่าน
             if (userData.password === pass) {
                 loginSuccess(userData.role, user, pass, remember);
             } else {
-                alert('❌ รหัสผ่านไม่ถูกต้อง!');
+                alert('❌ รหัสผ่านไม่ถูกต้อง!\n\n📝 รหัสผ่านที่ถูกต้อง:\n- admin: admin123\n- user: user123');
             }
         } else {
-            alert('❌ ไม่พบชื่อผู้ใช้นี้ในระบบ!');
+            alert('❌ ไม่พบชื่อผู้ใช้นี้ในระบบ!\n\n📝 ชื่อผู้ใช้ที่ใช้ได้: admin หรือ user\n🔑 รหัสผ่าน: admin123 หรือ user123');
         }
     } catch (error) {
         console.error("Login Error: ", error);
-        alert('❌ เกิดข้อผิดพลาดในการเชื่อมต่อกับฐานข้อมูล Firebase');
+        alert('❌ เกิดข้อผิดพลาด: ' + error.message + '\n\nกรุณารอสักครู่แล้วลองใหม่');
+    } finally {
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
     }
 };
 
@@ -122,6 +135,13 @@ function checkInitialLogin() {
         document.getElementById('username').value = savedUser;
         document.getElementById('password').value = savedPass;
         document.getElementById('rememberMe').checked = isRemembered;
+        
+        // Auto login if remember me is true
+        if (isRemembered) {
+            setTimeout(() => {
+                window.handleLogin();
+            }, 500);
+        }
     }
 
     const activeRole = sessionStorage.getItem('activeRole');
@@ -130,15 +150,49 @@ function checkInitialLogin() {
     }
 }
 
-// สร้างข้อมูลบัญชีผู้ใช้จำลองเริ่มต้นกรณีข้อมูลใน Firebase ว่างเปล่า
+// สร้างข้อมูลบัญชีผู้ใช้เริ่มต้น
 async function initDefaultUsers() {
     try {
+        // รอให้ Firebase พร้อม
+        if (!window.db) {
+            console.log('Waiting for Firebase...');
+            await new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (window.db) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
         const usersRef = window.ref(window.db, 'users');
         const snapshot = await window.get(usersRef);
+        
         if (!snapshot.exists()) {
-            await window.set(window.ref(window.db, 'users/admin'), { password: 'admin123', role: 'admin' });
-            await window.set(window.ref(window.db, 'users/user'), { password: 'user123', role: 'user' });
-            console.log("✅ สร้างบัญชีผู้ใช้เริ่มต้นสำรองบน Firebase สำเร็จ (admin/user)");
+            console.log("Creating default users...");
+            await window.set(window.ref(window.db, 'users/admin'), { 
+                password: 'admin123', 
+                role: 'admin',
+                createdAt: new Date().toISOString()
+            });
+            await window.set(window.ref(window.db, 'users/user'), { 
+                password: 'user123', 
+                role: 'user',
+                createdAt: new Date().toISOString()
+            });
+            console.log("✅ Created default users (admin/user)");
+            
+            // Update sync status
+            const syncStatus = document.getElementById('syncStatus');
+            if (syncStatus) {
+                syncStatus.innerHTML = '✅ สร้างบัญชีผู้ใช้เริ่มต้นเรียบร้อย';
+                setTimeout(() => {
+                    syncStatus.innerHTML = '✅ Ready';
+                }, 2000);
+            }
+        } else {
+            console.log("✅ Users already exist in database");
         }
     } catch (e) {
         console.error("Error creating default users:", e);
@@ -150,6 +204,11 @@ async function initDefaultUsers() {
 // ==========================================
 
 window.openUserManager = function() {
+    const role = sessionStorage.getItem('activeRole');
+    if (role !== 'admin') {
+        alert('เฉพาะ Admin เท่านั้นที่สามารถจัดการผู้ใช้งานได้');
+        return;
+    }
     document.getElementById('userModal').style.display = 'flex';
     fetchUsers();
 };
@@ -184,8 +243,8 @@ async function fetchUsers() {
                     <td>${data.password}</td>
                     <td>${data.role === 'admin' ? '👑 Admin' : '👤 User'}</td>
                     <td>
-                        <button onclick="window.editUser && window.editUser('${username}', '${data.password}', '${data.role}')" class="btn-small edit-btn" style="background:#ffc107; color:#333; margin-right:5px; padding:6px 12px; font-size:0.85em;">✏️ แก้ไข</button>
-                        ${username !== 'admin' ? `<button onclick="window.deleteUser && window.deleteUser('${username}')" class="btn-small danger" style="padding:6px 12px; font-size:0.85em; background:#f44336; color:white; border:none; border-radius:4px;">🗑️ ลบ</button>` : ''}
+                        <button onclick="editUser('${username}', '${data.password}', '${data.role}')" class="btn-small edit-btn" style="background:#ffc107; color:#333; margin-right:5px; padding:6px 12px; font-size:0.85em; cursor:pointer; border:none; border-radius:4px;">✏️ แก้ไข</button>
+                        ${username !== 'admin' ? `<button onclick="deleteUser('${username}')" class="btn-small danger" style="padding:6px 12px; font-size:0.85em; background:#f44336; color:white; border:none; border-radius:4px; cursor:pointer;">🗑️ ลบ</button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -209,13 +268,23 @@ window.saveUser = async function() {
         return;
     }
 
+    if (username.length < 3) {
+        alert("Username ต้องมีความยาวอย่างน้อย 3 ตัวอักษร");
+        return;
+    }
+
+    if (password.length < 4) {
+        alert("Password ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
+        return;
+    }
+
     try {
-        // ใช้ฟังก์ชัน set บันทึกลงพิกัด users/username ของ Firebase โดยตรง
         await window.set(window.ref(window.db, `users/${username}`), {
             password: password,
-            role: role
+            role: role,
+            updatedAt: new Date().toISOString()
         });
-        alert(`✅ บันทึกข้อมูลผู้ใช้ "${username}" บนคลาวด์เรียบร้อยแล้ว`);
+        alert(`✅ บันทึกข้อมูลผู้ใช้ "${username}" เรียบร้อยแล้ว`);
         clearUserForm();
         fetchUsers();
     } catch (error) {
@@ -232,7 +301,7 @@ window.editUser = function(username, password, role) {
 
 window.deleteUser = async function(username) {
     if (username === 'admin') {
-        alert('ไม่อนุญาตให้ลบ Admin หลักของระบบครับ');
+        alert('ไม่อนุญาตให้ลบ Admin หลักของระบบ');
         return;
     }
 
@@ -264,6 +333,12 @@ function waitForFirebase() {
                     resolve();
                 }
             }, 100);
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.warn('Firebase timeout, but continuing...');
+                resolve();
+            }, 10000);
         }
     });
 }
@@ -632,38 +707,6 @@ window.exportToCSV = function() {
     a.click();
     URL.revokeObjectURL(url);
 };
-
-// PWA Installation
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    if (!document.getElementById('pwaInstallBtn')) {
-        const installBtn = document.createElement('button');
-        installBtn.id = 'pwaInstallBtn';
-        installBtn.textContent = '📱 Install App';
-        installBtn.style.position = 'fixed';
-        installBtn.style.bottom = '20px';
-        installBtn.style.right = '20px';
-        installBtn.style.zIndex = '1000';
-        installBtn.style.padding = '12px 20px';
-        installBtn.style.borderRadius = '25px';
-        installBtn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-        installBtn.onclick = async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('PWA installed');
-                }
-                deferredPrompt = null;
-                installBtn.remove();
-            }
-        };
-        document.body.appendChild(installBtn);
-    }
-});
 
 // Check PWA status
 if (window.matchMedia('(display-mode: standalone)').matches) {
