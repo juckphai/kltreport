@@ -1,0 +1,21 @@
+{
+  "name": "ESP32-S3 Smart Sensor Monitor",
+  "short_name": "Sensor Monitor",
+  "description": "Real-time monitoring for ESP32-S3 with 4 sensors",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#4CAF50",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
