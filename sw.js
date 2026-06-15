@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sensor-monitor-v1.20';
+const CACHE_NAME = 'sensor-monitor-v1.23';
 const urlsToCache = [
   '/',
   '/index.html',

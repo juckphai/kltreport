@@ -706,3 +706,81 @@ input[type="password"]:focus {
     font-size: 0.7rem;
     margin: 2px;
 }
+/* ==========================================
+   👥 User Manager Responsive Table (เพิ่มจากไฟล์ 17)
+   ========================================== */
+
+.user-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 55vh;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: white;
+    -webkit-overflow-scrolling: touch;
+}
+
+.user-table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: collapse;
+}
+
+.user-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #eef2ff;
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+    .user-table {
+        min-width: 650px;
+    }
+
+    .user-table th,
+    .user-table td {
+        white-space: nowrap;
+    }
+
+    .btn-small {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    .user-table td:last-child {
+        min-width: 180px;
+    }
+}
+
+/* ปรับปรุง responsive สำหรับ modal */
+@media (max-width: 640px) {
+    .user-table th,
+    .user-table td {
+        padding: 8px;
+    }
+    
+    .user-table td {
+        display: block;
+        text-align: right;
+        position: relative;
+        padding-left: 50%;
+    }
+    
+    .user-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 8px;
+        width: 45%;
+        text-align: left;
+        font-weight: bold;
+        white-space: normal;
+    }
+    
+    .user-table td:last-child {
+        min-width: auto;
+    }
+}

@@ -14,12 +14,11 @@ let sensorHistory = {
 let connectionMode = 'offline';
 
 // ==========================================
-// 🏷️ หัวข้อหลักที่ 2: ระบบจัดการชื่อโครงการ (Project Title Management) - เพิ่มจากไฟล์ 17
+// 🏷️ หัวข้อหลักที่ 2: ระบบจัดการชื่อโครงการ (Project Title Management)
 // ==========================================
 
 /**
  * หัวข้อย่อย 2.1: ฟังก์ชันดึงชื่อโครงการจาก Firebase และแสดงผล
- * ทำงานร่วมกับ Firebase Real-time Database ที่ path: settings/project_title
  */
 function initTitleListener() {
     if (!window.db) return;
@@ -32,7 +31,6 @@ function initTitleListener() {
         const title = snapshot.exists() ? snapshot.val() : "หน้าจอจัดการและรายงานโครงการ(น้องโค้ก)";
         titleEl.textContent = title;
         
-        // แสดงปุ่มแก้ไขเฉพาะ Admin (อ่านค่าจาก sessionStorage)
         const activeRole = sessionStorage.getItem('activeRole');
         const editBtn = document.getElementById('editTitleBtn');
         if (editBtn) {
@@ -85,12 +83,11 @@ window.saveProjectTitle = async function() {
 };
 
 /**
- * หัวข้อย่อย 2.5: ฟังก์ชันลบชื่อโครงการ (ตั้งค่าเป็นค่าว่าง หรือค่าเริ่มต้น)
+ * หัวข้อย่อย 2.5: ฟังก์ชันลบชื่อโครงการ
  */
 window.deleteProjectTitle = async function() {
     if (confirm("ยืนยันการลบชื่อโครงการ? (จะกลับสู่ค่าเริ่มต้น)")) {
         try {
-            // ลบข้อมูลออกจาก Firebase
             await window.remove(window.ref(window.db, 'settings/project_title'));
             closeTitleEditor();
             alert("✅ ลบชื่อโครงการสำเร็จ (กลับสู่ค่าเริ่มต้น)");
@@ -101,45 +98,38 @@ window.deleteProjectTitle = async function() {
 };
 
 // ==========================================
-// 👥 หัวข้อหลักที่ 3: ระบบ Presence (แสดงรายชื่อผู้ใช้ที่ออนไลน์) - เพิ่มจากไฟล์ 17
+// 👥 หัวข้อหลักที่ 3: ระบบ Presence (แสดงรายชื่อผู้ใช้ที่ออนไลน์)
 // ==========================================
 
 /**
- * หัวข้อย่อย 3.1: ฟังก์ชันอัปเดตสถานะออนไลน์ของผู้ใช้
+ * หัวข้อย่อย 3.1: ฟังก์ชันอัปเดตสถานะออนไลน์ของผู้ใช้ พร้อม setInterval อัปเดต lastSeen ทุก 30 วินาที
  * @param {string} username - ชื่อผู้ใช้
  * @param {string} role - สิทธิ์ของผู้ใช้ (admin/user)
- */
-/**
- * หัวข้อย่อย 3.1: ฟังก์ชันอัปเดตสถานะออนไลน์ของผู้ใช้
- * เพิ่ม setInterval เพื่ออัปเดต lastSeen ทุก 30 วินาที
  */
 function updatePresence(username, role) {
     if (!window.db || !username) return;
     
     const presenceRef = window.ref(window.db, 'online_users/' + username);
     
-    // ตั้งค่าสถานะเริ่มต้น
     window.set(presenceRef, {
         role: role,
         loginAt: window.serverTimestamp(),
         lastSeen: new Date().toISOString()
     }).catch(err => console.warn("⚠️ updatePresence set error:", err));
 
-    // ฟังสถานะการเชื่อมต่อ Firebase
     window.onValue(window.ref(window.db, '.info/connected'), (snap) => {
         if (snap.val() === true) {
-            // ใช้ onDisconnect เพื่อลบข้อมูลเมื่อผู้ใช้ปิดหน้าเว็บหรือเน็ตตัด
             const onDisconnectRef = window.ref(window.db, 'online_users/' + username);
             onDisconnectRef.onDisconnect().remove().catch(err => console.warn("⚠️ onDisconnect error:", err));
         }
     });
 
-    // 🚀 เพิ่มฟังก์ชันอัปเดต lastSeen ทุก 30 วินาที เพื่อป้องกันสถานะค้าง
+    // อัปเดต lastSeen ทุก 30 วินาที
     setInterval(() => {
         window.update(presenceRef, {
             lastSeen: new Date().toISOString()
         }).catch(err => console.warn("⚠️ lastSeen update error:", err));
-    }, 30000); 
+    }, 30000);
 }
 
 /**
@@ -152,7 +142,7 @@ function removePresence(username) {
     window.remove(presenceRef).catch(err => console.warn("⚠️ removePresence error:", err));
 }
 
- /**
+/**
  * หัวข้อย่อย 3.3: ฟังก์ชันแสดงรายชื่อผู้ใช้ที่ออนไลน์อยู่
  */
 function initPresenceListener() {
@@ -170,8 +160,6 @@ function initPresenceListener() {
             const now = new Date().getTime();
             
             Object.keys(users).forEach(u => {
-                // ตรวจสอบว่า lastSeen มีการอัปเดตล่าสุดไม่เกิน 2 นาที (120,000 ms) 
-                // ถ้าเกินนี้ถือว่าค้างให้ข้ามไป
                 const lastSeen = new Date(users[u].lastSeen).getTime();
                 if (now - lastSeen < 120000) {
                     const roleIcon = users[u].role === 'admin' ? '👑' : '👤';
@@ -222,13 +210,11 @@ window.handleLogin = async function() {
     try {
         if (!window.db) throw new Error('Firebase ไม่พร้อมใช้งาน');
         
-        // ดึงข้อมูลผู้ใช้รายนี้จาก Firebase
         const userRef = window.ref(window.db, `users/${user}`);
         const snapshot = await window.get(userRef);
 
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            // ตรวจสอบรหัสผ่าน
             if (userData.password === pass) {
                 loginSuccess(userData.role, user, pass, remember);
             } else {
@@ -247,9 +233,8 @@ window.handleLogin = async function() {
  */
 function loginSuccess(role, user, pass, remember) {
     sessionStorage.setItem('activeRole', role);
-    sessionStorage.setItem('currentUser', user); 
+    sessionStorage.setItem('currentUser', user);
     
-    // จัดการ Remember Me
     if (remember) {
         localStorage.setItem('savedUsername', user);
         localStorage.setItem('savedPassword', pass);
@@ -262,7 +247,6 @@ function loginSuccess(role, user, pass, remember) {
     
     applyRole(role);
     
-    // เรียกใช้งานฟังก์ชันที่เกี่ยวข้อง
     updatePresence(user, role);
     initPresenceListener();
     initTitleListener();
@@ -279,17 +263,14 @@ function applyRole(role) {
     
     if (role === 'admin') {
         document.getElementById('adminControls').classList.remove('role-hidden');
-        // ✅ แสดงปุ่มแก้ไขชื่อโครงการ
         const editBtn = document.getElementById('editTitleBtn');
         if (editBtn) editBtn.style.display = 'block';
     } else {
         document.getElementById('adminControls').classList.add('role-hidden');
-        // ✅ ซ่อนปุ่มแก้ไขชื่อโครงการ
         const editBtn = document.getElementById('editTitleBtn');
         if (editBtn) editBtn.style.display = 'none';
     }
     
-    // ✅ เพิ่มส่วนแสดงรายชื่อผู้ใช้ออนไลน์ลงในหน้า (ถ้ายังไม่มี)
     addOnlineUsersBox();
 }
 
@@ -297,13 +278,11 @@ function applyRole(role) {
  * หัวข้อย่อย 4.5: เพิ่มกล่องแสดงรายชื่อผู้ใช้ออนไลน์ลงในหน้า
  */
 function addOnlineUsersBox() {
-    // ตรวจสอบว่ามีอยู่แล้วหรือไม่
     if (document.getElementById('onlineUsersBox')) return;
     
     const container = document.querySelector('.container');
     if (!container) return;
     
-    // หาตำแหน่งที่จะแทรก (อยู่ใต้ status-bar)
     const statusBar = document.querySelector('.status-bar');
     const onlineBox = document.createElement('div');
     onlineBox.id = 'onlineUsersBox';
@@ -324,7 +303,6 @@ function addOnlineUsersBox() {
         </div>
     `;
     
-    // แทรกใต้ status-bar
     if (statusBar && statusBar.parentNode) {
         statusBar.insertAdjacentElement('afterend', onlineBox);
     } else {
@@ -342,7 +320,6 @@ function addOnlineUsersBox() {
 window.logout = async function() {
     const currentUser = sessionStorage.getItem('currentUser');
     
-    // เคลียร์ข้อมูลในเครื่องทันที เพื่อป้องกันการล็อกอินซ้ำอัตโนมัติก่อนลบเสร็จ
     localStorage.removeItem('savedUsername');
     localStorage.removeItem('savedPassword');
     localStorage.removeItem('rememberMe');
@@ -351,25 +328,19 @@ window.logout = async function() {
     if (currentUser && window.db) {
         try {
             const presenceRef = window.ref(window.db, 'online_users/' + currentUser);
-            
-            // 1. ยกเลิก onDisconnect เพื่อไม่ให้มันทำงานค้างไว้
             await presenceRef.onDisconnect().cancel();
-            
-            // 2. ลบสถานะออนไลน์
             await window.remove(presenceRef);
             console.log("✅ ลบสถานะออนไลน์เรียบร้อย");
-            
         } catch (err) {
             console.error("❌ ลบสถานะออนไลน์ไม่สำเร็จ:", err);
         }
     }
     
-    // 3. รีโหลดหน้าเว็บเพื่อให้กลับสู่หน้า Login
     window.location.reload();
 };
 
 // ==========================================
-// 👥 หัวข้อหลักที่ 6: ระบบจัดการผู้ใช้งาน (User Manager) พร้อมฟังก์ชันแก้ไข
+// 👥 หัวข้อหลักที่ 6: ระบบจัดการผู้ใช้งาน (User Manager) แบบ Responsive (ปรับปรุงตามไฟล์ 17)
 // ==========================================
 
 /**
@@ -388,7 +359,6 @@ window.closeUserManager = function() {
     document.getElementById('manageUsername').value = '';
     document.getElementById('managePassword').value = '';
     document.getElementById('manageRole').value = 'user';
-    // รีเซ็ตปุ่มกลับสู่สถานะปกติ
     const saveBtn = document.querySelector('.user-management-form .save-btn');
     if (saveBtn) {
         saveBtn.textContent = '💾 บันทึก';
@@ -403,16 +373,14 @@ window.closeUserManager = function() {
 window.editUser = function(username, password, role) {
     const userField = document.getElementById('manageUsername');
     userField.value = username;
-    userField.readOnly = true; // ล็อกไม่ให้แก้ไขชื่อผู้ใช้
+    userField.readOnly = true;
     
     document.getElementById('managePassword').value = password;
     document.getElementById('manageRole').value = role;
     
-    // เปลี่ยนปุ่มเป็นโหมดอัปเดต
     const saveBtn = document.querySelector('.user-management-form .save-btn');
     saveBtn.textContent = '💾 อัปเดต';
-    // ส่งค่า true เพื่อให้ทราบว่าเป็นโหมดอัปเดต
-    saveBtn.setAttribute('onclick', 'saveUser(true)'); 
+    saveBtn.setAttribute('onclick', 'saveUser(true)');
 };
 
 /**
@@ -426,7 +394,6 @@ window.saveUser = async function(isEdit = false) {
     if (!username || !password) return alert("กรุณากรอก Username และ Password");
 
     try {
-        // ใช้การ update เพื่อเขียนทับเฉพาะข้อมูลที่ต้องการแก้ไข
         await window.update(window.ref(window.db, `users/${username}`), {
             password: password,
             role: role,
@@ -434,10 +401,7 @@ window.saveUser = async function(isEdit = false) {
         });
         
         alert(`✅ ${isEdit ? 'อัปเดต' : 'บันทึก'}ผู้ใช้ ${username} สำเร็จ`);
-        
-        // ปิด Modal และล้างฟอร์ม
         closeUserManager();
-        // โหลดตารางใหม่
         await renderUserTable();
     } catch (error) {
         alert("❌ ไม่สามารถบันทึกได้: " + error.message);
@@ -450,7 +414,6 @@ window.saveUser = async function(isEdit = false) {
 window.deleteUser = async function(username) {
     if (confirm(`ลบผู้ใช้ ${username} ออกจากระบบ?`)) {
         try {
-            // ✅ ถ้าลบผู้ใช้ ให้ลบสถานะออนไลน์ด้วย
             await window.remove(window.ref(window.db, `online_users/${username}`));
             await window.remove(window.ref(window.db, `users/${username}`));
             alert(`✅ ลบผู้ใช้ ${username} สำเร็จ`);
@@ -462,7 +425,7 @@ window.deleteUser = async function(username) {
 };
 
 /**
- * หัวข้อย่อย 6.6: แสดงตารางผู้ใช้
+ * หัวข้อย่อย 6.6: แสดงตารางผู้ใช้แบบ Responsive (ปรับปรุงตามไฟล์ 17 - เพิ่ม data-label และโครงสร้างใหม่)
  */
 async function renderUserTable() {
     const tbody = document.getElementById('userTableBody');
@@ -475,24 +438,56 @@ async function renderUserTable() {
             tbody.innerHTML = '';
             for (const [username, userData] of Object.entries(users)) {
                 const tr = document.createElement('tr');
+                // ✅ ปรับปรุงตามไฟล์ 17: เพิ่ม data-label สำหรับ responsive และมี <strong> ใน cell
                 tr.innerHTML = `
-                    <td>${username}</td>
-                    <td>${userData.password || '****'}</td>
-                    <td><span class="role-badge ${userData.role === 'admin' ? 'role-admin' : 'role-user'}">${userData.role === 'admin' ? '👑 Admin' : '👤 User'}</span></td>
-                    <td>
-                        <button onclick="editUser('${username}', '${userData.password}', '${userData.role}')" class="btn-small edit-btn" style="background:#2196F3; color:white; margin-right:5px;">✏️ แก้ไข</button>
-                        <button onclick="deleteUser('${username}')" class="btn-small danger">🗑️ ลบ</button>
+                    <td data-label="Username">
+                        <strong>Username</strong><br>
+                        ${escapeHtml(username)}
+                    </td>
+                    <td data-label="Password">
+                        <strong>Password</strong><br>
+                        ${escapeHtml(userData.password || '****')}
+                    </td>
+                    <td data-label="Role">
+                        <strong>Role</strong><br>
+                        <span class="role-badge ${userData.role === 'admin' ? 'role-admin' : 'role-user'}">
+                            ${userData.role === 'admin' ? '👑 Admin' : '👤 User'}
+                        </span>
+                    </td>
+                    <td data-label="Action">
+                        <strong>Action</strong><br>
+                        <button onclick="editUser('${escapeHtml(username)}', '${escapeHtml(userData.password || '')}', '${userData.role}')"
+                            class="btn-small edit-btn" style="background:#2196F3; color:white; margin-right:5px;">
+                            ✏️ แก้ไข
+                        </button>
+                        <button onclick="deleteUser('${escapeHtml(username)}')"
+                            class="btn-small danger">
+                            🗑️ ลบ
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             }
         } else {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">ไม่มีข้อมูลผู้ใช้</td></tr>';
+            tbody.innerHTML = '<td><td colspan="4" style="text-align:center;">ไม่มีข้อมูลผู้ใช้</td></tr>';
         }
     } catch (error) {
         console.error("Error loading users:", error);
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">โหลดข้อมูลล้มเหลว</td></tr>';
     }
+}
+
+/**
+ * หัวข้อย่อย 6.7: ฟังก์ชันช่วย Escape HTML เพื่อป้องกัน XSS
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // ==========================================
@@ -527,7 +522,6 @@ window.saveDevice = async function() {
     const unit = document.getElementById('devUnit').value.trim();
 
     if (!id || !name) return alert("กรุณากรอก ID และ ชื่อจุดติดตั้ง");
-    // อัปเดตลง Firebase โดยค่าเริ่มต้นตั้งเป็น enabled: true
     try {
         await window.set(window.ref(window.db, `device_configs/${id}`), {
             name: name,
@@ -591,47 +585,38 @@ function renderDeviceTable() {
         const toggleBtnClass = config.enabled ? 'btn-small danger' : 'btn-small edit-btn';
 
         tr.innerHTML = `
-            <td><b>${id}</b></td>
-            <td>${config.name}</td>
-            <td>${config.type} <small>(${config.unit})</small></td>
-            <td>${statusBadge}</td>
-            <td>
-                <button onclick="toggleDevice('${id}', ${config.enabled})" class="${toggleBtnClass}">${toggleBtnText}</button>
-                <button onclick="deleteDevice('${id}')" class="btn-small danger" style="margin-left:5px;">🗑️</button>
-             </td>
+            <td data-label="ID"><b>${escapeHtml(id)}</b></td>
+            <td data-label="ชื่อจุดติดตั้ง">${escapeHtml(config.name)}</td>
+            <td data-label="ชนิด/หน่วย">${escapeHtml(config.type)} <small>(${escapeHtml(config.unit)})</small></td>
+            <td data-label="สถานะการทำงาน">${statusBadge}</td>
+            <td data-label="จัดการ">
+                <button onclick="toggleDevice('${escapeHtml(id)}', ${config.enabled})" class="${toggleBtnClass}">${toggleBtnText}</button>
+                <button onclick="deleteDevice('${escapeHtml(id)}')" class="btn-small danger" style="margin-left:5px;">🗑️</button>
+            </td>
         `;
         tbody.appendChild(tr);
     }
 }
 
 // ==========================================
-// 🔌 หัวข้อหลักที่ 8: ระบบ Provisioning ติดตั้งบอร์ดผ่าน USB (เพิ่มจากไฟล์ 18)
+// 🔌 หัวข้อหลักที่ 8: ระบบ Provisioning ติดตั้งบอร์ดผ่าน USB
 // ==========================================
 
 /**
- * หัวข้อย่อย 8.1: ฟังก์ชันหลักที่รวมการเชื่อมต่อ USB และการบันทึกลง Firebase ไว้ด้วยกัน
- * ขั้นตอนการทำงาน:
- * 1. ค้นหาบอร์ดผ่าน Web Serial API
- * 2. รับข้อมูลจากผู้ใช้ (deviceId, WiFi SSID, Password)
- * 3. ส่งข้อมูล JSON ให้ ESP32 ผ่านสาย USB
- * 4. บันทึกอุปกรณ์ลง Firebase
+ * หัวข้อย่อย 8.1: ฟังก์ชันหลักที่รวมการเชื่อมต่อ USB และการบันทึกลง Firebase
  */
 window.startProvisioningProcess = async function() {
-    // 1. ตรวจสอบว่าเบราว์เซอร์รองรับ Web Serial API หรือไม่ (บังคับ HTTPS เท่านั้น)
     if (!("serial" in navigator)) {
         alert("❌ เบราว์เซอร์ของคุณไม่รองรับการติดตั้งผ่าน USB\nกรุณาใช้ Google Chrome หรือ Microsoft Edge และต้องใช้งานผ่าน HTTPS เท่านั้น");
         return;
     }
 
     try {
-        // 2. ขออนุญาตเข้าถึงพอร์ต USB
         const port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
 
-        // 3. แจ้งเตือนสถานะให้ผู้ใช้ทราบว่าเชื่อมต่อสำเร็จแล้ว
         alert("เชื่อมต่อสำเร็จ! กำลังเตรียมส่งข้อมูล WiFi ให้บอร์ด...");
 
-        // 4. รับข้อมูลจากผู้ใช้
         const deviceId = prompt("ใส่ ID อุปกรณ์ (เช่น pond01):");
         const ssid = prompt("ชื่อ WiFi (SSID):");
         const pass = prompt("รหัสผ่าน WiFi:");
@@ -642,18 +627,15 @@ window.startProvisioningProcess = async function() {
             return;
         }
 
-        // 5. ส่งข้อมูล JSON ให้ ESP32
         const writer = port.writable.getWriter();
         const configData = { device_id: deviceId, ssid: ssid, password: pass };
         
-        // ส่งข้อมูลเป็น String พร้อมขึ้นบรรทัดใหม่
         const encoder = new TextEncoder();
         await writer.write(encoder.encode(JSON.stringify(configData) + "\n"));
         
         writer.releaseLock();
         await port.close();
 
-        // 6. บันทึกลง Firebase
         await window.set(window.ref(window.db, `device_configs/${deviceId}`), {
             name: "อุปกรณ์ " + deviceId,
             type: "ultrasonic",
@@ -665,7 +647,6 @@ window.startProvisioningProcess = async function() {
 
         alert("✅ ติดตั้งและบันทึกข้อมูลเรียบร้อย!");
         
-        // โหลดตารางใหม่ใน Modal
         if (typeof renderDeviceTable === 'function') {
             renderDeviceTable();
         }
@@ -682,6 +663,7 @@ window.startProvisioningProcess = async function() {
         }
     }
 };
+
 // ==========================================
 // 📊 หัวข้อหลักที่ 9: UI และ Chart Dynamic Rendering
 // ==========================================
@@ -696,22 +678,21 @@ function renderSensorCards() {
     let hasEnabledDevice = false;
 
     for (const [id, config] of Object.entries(deviceConfigs)) {
-        if (!config.enabled) continue; // ข้ามตัวที่ปิดใช้งาน
+        if (!config.enabled) continue;
         hasEnabledDevice = true;
 
         const val = currentSensorValues[id] !== undefined ? currentSensorValues[id] : '--';
         const timeStr = new Date().toLocaleTimeString();
 
-        // Icon ชั่วคราวตามประเภท
         const iconMap = { ultrasonic: '📡', soil: '🌱', rain: '🌧️', ph: '🧪', temp: '🌡️' };
         const icon = iconMap[config.type] || '🔍';
 
         const cardHTML = `
             <div class="sensor-card" id="card_${id}">
-                <div class="sensor-title">${icon} ${config.name}</div>
+                <div class="sensor-title">${icon} ${escapeHtml(config.name)}</div>
                 <div class="sensor-value">
                     <span id="val_${id}">${val}</span>
-                    <span class="sensor-unit">${config.unit}</span>
+                    <span class="sensor-unit">${escapeHtml(config.unit)}</span>
                 </div>
                 <div class="timestamp" id="time_${id}">อัปเดต: ${val !== '--' ? timeStr : 'รอข้อมูล...'}</div>
             </div>
@@ -743,18 +724,16 @@ function initChart() {
 }
 
 /**
- * หัวข้อย่อย 9.3: สร้างชุดข้อมูลของกราฟใหม่เมื่อมีการตั้งค่าอุปกรณ์เปลี่ยนไป
+ * หัวข้อย่อย 9.3: สร้างชุดข้อมูลของกราฟใหม่
  */
 function updateChartStructure() {
     if (!chart) return;
     const datasets = [];
     
-    // สร้างเส้นกราฟเฉพาะเซนเซอร์ที่ Enable อยู่
     Object.keys(deviceConfigs).forEach((id, index) => {
         const config = deviceConfigs[id];
         if(!config.enabled) return;
 
-        // สุ่มสี (หรือใช้สีประจำลำดับ)
         const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
         const color = colors[index % colors.length];
 
@@ -779,7 +758,7 @@ function updateChartStructure() {
  */
 function processNewData(dataObj) {
     const timeNow = new Date();
-    currentSensorValues = dataObj; // อัปเดตค่าปัจจุบันทั้งหมด
+    currentSensorValues = dataObj;
     
     sensorHistory.timestamps.push(timeNow.toLocaleTimeString());
     if(sensorHistory.timestamps.length > 100) sensorHistory.timestamps.shift();
@@ -787,13 +766,11 @@ function processNewData(dataObj) {
     Object.keys(deviceConfigs).forEach(id => {
         if (!deviceConfigs[id].enabled) return;
 
-        // วาด Card
         const valEl = document.getElementById(`val_${id}`);
         const timeEl = document.getElementById(`time_${id}`);
         if(valEl) valEl.textContent = dataObj[id] !== undefined ? dataObj[id] : 0;
         if(timeEl) timeEl.textContent = `อัปเดต: ${timeNow.toLocaleTimeString()}`;
 
-        // จัดการ History สำหรับกราฟ
         if (!sensorHistory.data[id]) sensorHistory.data[id] = [];
         sensorHistory.data[id].push(dataObj[id] !== undefined ? dataObj[id] : 0);
         if(sensorHistory.data[id].length > 100) sensorHistory.data[id].shift();
@@ -801,7 +778,7 @@ function processNewData(dataObj) {
 
     if(chart) {
         chart.data.labels = sensorHistory.timestamps;
-        chart.update('none'); // อัปเดตแบบไม่ให้กระตุก
+        chart.update('none');
     }
 }
 
@@ -815,10 +792,8 @@ function processNewData(dataObj) {
 function initFirebaseListeners() {
     if (!window.db) return;
 
-    // 0. ✅ ดักฟังการเปลี่ยนแปลงชื่อโครงการ (Project Title)
     initTitleListener();
 
-    // 1. ดักฟังการตั้งค่า (Device Configs)
     const configRef = window.ref(window.db, 'device_configs');
     window.onValue(configRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -833,7 +808,6 @@ function initFirebaseListeners() {
         }
     });
 
-    // 2. ดักฟังข้อมูลปัจจุบันที่ส่งมาจาก ESP32
     const currentRef = window.ref(window.db, 'sensors/current');
     window.onValue(currentRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -841,7 +815,6 @@ function initFirebaseListeners() {
         }
     });
 
-    // เช็คสถานะเชื่อมต่อ
     window.onValue(window.ref(window.db, ".info/connected"), (snap) => {
         const statusEl = document.getElementById('espStatus');
         if (snap.val() === true) {
@@ -853,28 +826,24 @@ function initFirebaseListeners() {
         }
     });
     
-    // 3. ✅ เริ่มฟังการเปลี่ยนแปลงรายชื่อผู้ใช้ออนไลน์
     initPresenceListener();
 }
 
 // ==========================================
-// 🚀 หัวข้อหลักที่ 11: เริ่มต้นทำงาน (ปรับปรุง Auto Login ตามไฟล์ 17)
+// 🚀 หัวข้อหลักที่ 11: เริ่มต้นทำงาน (Auto Login)
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // เพิ่มเงื่อนไขเช็คว่าถ้าเคย Logout ไปแล้ว (sessionStorage ว่าง) ให้ข้ามการ Auto Login
     const savedUser = localStorage.getItem('savedUsername');
     const isLoggedOut = sessionStorage.getItem('activeRole') === null; 
 
     if (savedUser && isLoggedOut) {
-        // ถ้ามี savedUser แต่ยังไม่ได้ล็อกอินใน Session นี้ ให้ทำ Auto Login
         document.getElementById('username').value = savedUser;
         document.getElementById('password').value = localStorage.getItem('savedPassword');
         document.getElementById('rememberMe').checked = true;
         setTimeout(() => window.handleLogin(), 500);
     }
     
-    // รอ Firebase โหลด
     const checkFirebase = setInterval(() => {
         if (window.db) {
             clearInterval(checkFirebase);
@@ -906,7 +875,7 @@ window.clearLocalData = function() {
 // ==========================================
 
 let autoLogIntervalId = null;
-let currentIntervalMinutes = 15; // ค่าเริ่มต้น 15 นาที
+let currentIntervalMinutes = 15;
 
 /**
  * หัวข้อย่อย 13.1: เปิด Modal ตั้งค่าระบบ
@@ -924,7 +893,7 @@ window.closeSettingsManager = function() {
 };
 
 /**
- * หัวข้อย่อย 13.3: บันทึกความถี่ลง Firebase เพื่อให้ตรงกันทุกเครื่อง
+ * หัวข้อย่อย 13.3: บันทึกความถี่ลง Firebase
  */
 window.saveLogInterval = async function() {
     const min = parseInt(document.getElementById('logInterval').value);
@@ -949,17 +918,15 @@ function startAutoLogging(minutes) {
     console.log(`⏱️ เริ่มการบันทึกข้อมูลอัตโนมัติทุกๆ ${minutes} นาที`);
     
     autoLogIntervalId = setInterval(async () => {
-        // เช็คว่ามีข้อมูลปัจจุบันหรือไม่
         if (Object.keys(currentSensorValues).length === 0) return;
         
         const now = new Date();
-        const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
         
         const path = `sensor_history/${dateStr}/${timeStr}`;
         
         try {
-            // เพิ่ม Timestamp เข้าไปในข้อมูลที่จะบันทึก
             const dataToSave = { ...currentSensorValues, savedAt: now.toISOString() };
             await window.set(window.ref(window.db, path), dataToSave);
             console.log(`📝 บันทึกข้อมูลสถิติลง Firebase สำเร็จ (${timeStr})`);
@@ -1002,16 +969,12 @@ window.importDataOffline = function(event) {
         try {
             const importedData = JSON.parse(e.target.result);
             
-            // ตรวจสอบโครงสร้างไฟล์คราวๆ
             if (importedData.timestamps && importedData.data) {
-                sensorHistory = importedData; // แทนที่ข้อมูลในระบบ
+                sensorHistory = importedData;
                 
-                // สั่งให้กราฟอัปเดตข้อมูลใหม่
                 if (chart) {
                     chart.data.labels = sensorHistory.timestamps;
-                    // ดึง dataset กลับเข้ามา
                     chart.data.datasets.forEach(ds => {
-                        // ค้นหา id เซนเซอร์จากชื่อใน label
                         const matchedId = Object.keys(deviceConfigs).find(id => ds.label.includes(deviceConfigs[id].name));
                         if(matchedId && sensorHistory.data[matchedId]) {
                             ds.data = sensorHistory.data[matchedId];
@@ -1028,14 +991,13 @@ window.importDataOffline = function(event) {
             alert("❌ ไฟล์ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการอ่านไฟล์");
             console.error(err);
         }
-        // ล้างค่า input เพื่อให้โหลดไฟล์เดิมซ้ำได้ถ้าต้องการ
         event.target.value = '';
     };
     reader.readAsText(file);
 };
 
 // ==========================================
-// 🚀 หัวข้อหลักที่ 14: เริ่มต้นระบบ Auto-Logging ทันทีที่ Firebase โหลดเสร็จ
+// 🚀 หัวข้อหลักที่ 14: เริ่มต้นระบบ Auto-Logging
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1047,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (snapshot.exists()) {
                     startAutoLogging(snapshot.val());
                 } else {
-                    startAutoLogging(15); // ถ้ายังไม่เคยตั้งค่า ให้เป็น 15 นาที
+                    startAutoLogging(15);
                 }
             });
         }

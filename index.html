@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script type="module">
         // ==============================================================
-        // หัวข้อหลักที่ 0: การตั้งค่า Firebase (Firebase Configuration)
+        // 📦 MODULE 0: Firebase Configuration (การตั้งค่า Firebase)
         // ==============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCZlNcwakBAlUPVfyaBsRasbYv6kOV4Ec4",
@@ -50,8 +50,8 @@
 <body>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 1: ระบบล็อกอิน (Login System)                     -->
-    <!-- หัวข้อย่อย 1.1: Overlay สำหรับล็อกอิน                          -->
+    <!-- 🟢 MODULE 1: ระบบล็อกอิน (Login System)                         -->
+    <!--   🔹 1.1 Overlay สำหรับล็อกอิน                                  -->
     <!-- ============================================================== -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-box">
@@ -88,14 +88,13 @@
                 </div>
     
                 <button type="submit" class="login-btn">เข้าสู่ระบบ 🚀</button>
-                
             </form>
         </div>
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 2: แถบแสดงสถานะผู้ใช้และปุ่มออกจากระบบ            -->
-    <!-- หัวข้อย่อย 2.1: แถบข้อมูลผู้ใช้และปุ่ม Logout                   -->
+    <!-- 🟢 MODULE 2: แถบแสดงสถานะผู้ใช้และปุ่มออกจากระบบ                 -->
+    <!--   🔹 2.1 แถบข้อมูลผู้ใช้และปุ่ม Logout                           -->
     <!-- ============================================================== -->
     <div class="user-info" id="userInfo" style="display: none;">
         <span>👤 สิทธิ์: <strong id="roleDisplay"></strong></span>
@@ -103,17 +102,23 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 3: หน้าจอหลักของแอปพลิเคชัน (Main Application)    -->
+    <!-- 🟢 MODULE 3: หน้าจอหลักของแอปพลิเคชัน (Main Application)        -->
+    <!--   🔹 3.1 หัวข้อโครงการพร้อมปุ่มแก้ไข                             -->
+    <!--   🔹 3.2 แถบสถานะการเชื่อมต่อ ESP32 และ Firebase               -->
+    <!--   🔹 3.3 กล่องแสดงรายชื่อผู้ใช้ออนไลน์ (PRESENCE BOX)            -->
+    <!--   🔹 3.4 กริดแสดงค่าจากเซนเซอร์                                 -->
+    <!--   🔹 3.5 พื้นที่แสดงกราฟ                                        -->
+    <!--   🔹 3.6 ปุ่มควบคุมสำหรับแอดมิน                                 -->
     <!-- ============================================================== -->
     <div class="container" id="mainApp" style="display: none;">
         
-        <!-- หัวข้อย่อย 3.1: หัวข้อโครงการพร้อมปุ่มแก้ไข -->
+        <!-- 3.1 หัวข้อโครงการ -->
         <div class="project-header" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
             <h1 id="projectTitle">กำลังโหลดชื่อโครงการ...</h1>
             <button id="editTitleBtn" onclick="openTitleEditor()" style="display:none; cursor:pointer; background: none; border: none; font-size: 1.5rem;">✏️</button>
         </div>
         
-        <!-- หัวข้อย่อย 3.2: แถบสถานะการเชื่อมต่อ ESP32 และ Firebase -->
+        <!-- 3.2 แถบสถานะ -->
         <div class="status-bar">
             <div>
                 <span>🔌 ESP32 Connection: </span>
@@ -122,7 +127,7 @@
             <div class="sync-status" id="syncStatus">✅ Ready</div>
         </div>
 
-        <!-- หัวข้อย่อย 3.3: กล่องแสดงรายชื่อผู้ใช้ออนไลน์ (PRESENCE BOX) -->
+        <!-- 3.3 กล่องผู้ใช้ออนไลน์ -->
         <div id="onlineUsersBox" class="online-users-box">
             <div class="online-users-container">
                 <small style="color: #ddd;">🟢 ออนไลน์อยู่ตอนนี้<span id="onlineCountBadge"></span>:</small>
@@ -132,19 +137,19 @@
             </div>
         </div>
 
-        <!-- หัวข้อย่อย 3.4: กริดแสดงค่าจากเซนเซอร์ -->
+        <!-- 3.4 กริดเซนเซอร์ -->
         <div class="sensor-grid" id="sensorGridContainer">
             <div style="width:100%; text-align:center; color:#fff; grid-column: 1 / -1;">
                 กำลังโหลดการตั้งค่าอุปกรณ์...
             </div>
         </div>
 
-        <!-- หัวข้อย่อย 3.5: พื้นที่แสดงกราฟ -->
+        <!-- 3.5 กราฟ -->
         <div class="chart-container">
             <canvas id="sensorChart"></canvas>
         </div>
 
-        <!-- หัวข้อย่อย 3.6: ปุ่มควบคุมสำหรับแอดมิน -->
+        <!-- 3.6 ปุ่มควบคุมแอดมิน -->
         <div class="controls" id="adminControls">
             <button onclick="window.clearLocalData && clearLocalData()" class="danger">🗑️ Clear Local Data</button>
             <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้</button>
@@ -153,8 +158,8 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 4: Modal สำหรับแก้ไขชื่อโครงการ                    -->
-    <!-- หัวข้อย่อย 4.1: โครงสร้าง Modal แก้ไขชื่อโครงการ                -->
+    <!-- 🟢 MODULE 4: Modal สำหรับแก้ไขชื่อโครงการ                        -->
+    <!--   🔹 4.1 โครงสร้าง Modal แก้ไขชื่อโครงการ                        -->
     <!-- ============================================================== -->
     <div id="titleModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
@@ -171,8 +176,10 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 5: Modal สำหรับจัดการผู้ใช้งาน (User Manager)       -->
-    <!-- หัวข้อย่อย 5.1: โครงสร้าง Modal จัดการผู้ใช้                    -->
+    <!-- 🟢 MODULE 5: Modal สำหรับจัดการผู้ใช้งาน (User Manager)           -->
+    <!--   🔹 5.1 โครงสร้าง Modal จัดการผู้ใช้ (ปรับปรุง Responsive ตามไฟล์ 17) -->
+    <!--   🔹 5.2 ฟอร์มเพิ่ม/แก้ไขผู้ใช้                                  -->
+    <!--   🔹 5.3 ตารางผู้ใช้แบบ Responsive พร้อม wrapper                -->
     <!-- ============================================================== -->
     <div id="userModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
@@ -191,23 +198,27 @@
                     <button onclick="saveUser()" class="save-btn">💾 บันทึก</button>
                 </div>
             </div>
-            <table class="user-table">
-                <thead><tr><th>Username</th><th>Password</th><th>Role</th><th>Action</th></tr></thead>
-                <tbody id="userTableBody"></tbody>
-            </table>
+            <!-- 🔹 5.3: user-table-wrapper เพิ่ม Scroll แนวนอน/แนวตั้ง และ Sticky Header -->
+            <div class="user-table-wrapper">
+                <table class="user-table">
+                    <thead>
+                        <tr><th>Username</th><th>Password</th><th>Role</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 6: Modal สำหรับจัดการอุปกรณ์เซนเซอร์ (Device Manager) -->
-    <!-- หัวข้อย่อย 6.1: โครงสร้าง Modal จัดการอุปกรณ์เซนเซอร์           -->
-    <!-- หัวข้อย่อย 6.2: ปุ่ม USB Provisioning (เพิ่มเติมจากไฟล์ 18)      -->
+    <!-- 🟢 MODULE 6: Modal สำหรับจัดการอุปกรณ์เซนเซอร์ (Device Manager)   -->
+    <!--   🔹 6.1 โครงสร้าง Modal จัดการอุปกรณ์เซนเซอร์                   -->
+    <!--   🔹 6.2 ปุ่ม USB Provisioning                                  -->
     <!-- ============================================================== -->
     <div id="deviceModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>⚙️ จัดการอุปกรณ์เซนเซอร์</h2>
-                <!-- ✅ หัวข้อย่อย 6.2.1: ปุ่มสำหรับเริ่มกระบวนการติดตั้งบอร์ดใหม่ผ่าน USB (เพิ่มจากไฟล์ 18) -->
                 <button onclick="startProvisioningProcess()" class="save-btn" style="background-color: #4CAF50;">➕ เพิ่มและตั้งค่าบอร์ดใหม่ (USB)</button>
                 <button onclick="closeDeviceManager()" class="close-btn">❌</button>
             </div>
@@ -241,8 +252,8 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 7: Modal สำหรับตั้งค่าระบบและสำรองข้อมูล (Settings & Backup) -->
-    <!-- หัวข้อย่อย 7.1: โครงสร้าง Modal ตั้งค่าระบบ                      -->
+    <!-- 🟢 MODULE 7: Modal สำหรับตั้งค่าระบบและสำรองข้อมูล (Settings & Backup) -->
+    <!--   🔹 7.1 โครงสร้าง Modal ตั้งค่าระบบ                              -->
     <!-- ============================================================== -->
     <div id="settingsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
@@ -281,8 +292,8 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 8: Scripts สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button) -->
-    <!-- หัวข้อย่อย 8.1: เพิ่มปุ่มตั้งค่าระบบเข้าไปในแถบควบคุม Admin      -->
+    <!-- 🟢 MODULE 8: Scripts สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button) -->
+    <!--   🔹 8.1 เพิ่มปุ่มตั้งค่าระบบเข้าไปในแถบควบคุม Admin              -->
     <!-- ============================================================== -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -294,8 +305,8 @@
     </script>
 
     <!-- ============================================================== -->
-    <!-- หัวข้อหลักที่ 9: เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)     -->
-    <!-- หัวข้อย่อย 9.1: การทำงานทั้งหมดจะอยู่ในไฟล์ script.js           -->
+    <!-- 🟢 MODULE 9: เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)         -->
+    <!--   🔹 9.1 การทำงานทั้งหมดจะอยู่ในไฟล์ script.js                   -->
     <!-- ============================================================== -->
     <script src="script.js"></script>
 </body>

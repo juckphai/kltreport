@@ -1,7 +1,7 @@
 {
-  "name": "หน้าจอจัดการและรายงานโครงการ(น้องโค้ก)",
+  "name": "Sensor coke",
   "short_name": "Sensor Monitor",
-  "description": "Real-time monitoring for ESP32-S3 with 4 sensors",
+  "description": "Real-time monitoring for ESP32-S3",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#4CAF50",
