@@ -169,8 +169,8 @@ function initPresenceListener() {
             
             Object.keys(users).forEach(u => {
                 const lastSeen = new Date(users[u].lastSeen).getTime();
-                // ✅ แก้ไขตามไฟล์ 17: ปรับจาก 120000 เป็น 45000 (45 วินาที)
-                if (now - lastSeen < 45000) {
+                // ✅ แก้ไขตามไฟล์ 17: ปรับจาก 120000 เป็น 30000 (45 วินาที)
+                if (now - lastSeen < 30000) {
                     const roleIcon = users[u].role === 'admin' ? '👑' : '👤';
                     html += `<span style="display: inline-block; margin-right: 12px; margin-bottom: 5px;">🟢 ${roleIcon} ${u}</span>`;
                     userCount++;
