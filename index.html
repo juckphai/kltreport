@@ -11,16 +11,18 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script type="module">
-        // Firebase configuration - FIXED DATABASE URL
-const firebaseConfig = {
-    apiKey: "AIzaSyCZlNcwakBAlUPVfyaBsRasbYv6kOV4Ec4",
-    authDomain: "kltreport.firebaseapp.com",
-    databaseURL: "https://kltreport-default-rtdb.asia-southeast1.firebasedatabase.app", // ✅ เปลี่ยนเป็น URL นี้
-    projectId: "kltreport",
-    storageBucket: "kltreport.firebasestorage.app",
-    messagingSenderId: "13996823947",
-    appId: "1:13996823947:web:06033d8452a7bb5996cb8e"
-};
+        // ==============================================================
+        // หัวข้อหลักที่ 0: การตั้งค่า Firebase (Firebase Configuration)
+        // ==============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZlNcwakBAlUPVfyaBsRasbYv6kOV4Ec4",
+            authDomain: "kltreport.firebaseapp.com",
+            databaseURL: "https://kltreport-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kltreport",
+            storageBucket: "kltreport.firebasestorage.app",
+            messagingSenderId: "13996823947",
+            appId: "1:13996823947:web:06033d8452a7bb5996cb8e"
+        };
 
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getDatabase, ref, push, set, onValue, serverTimestamp, get, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
@@ -44,184 +46,144 @@ const firebaseConfig = {
             console.error("❌ Firebase initialization error:", error);
         }
     </script>
-    <style>
-        /* Additional styles for user management */
-        .role-hidden {
-            display: none !important;
-        }
-        .btn-small {
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 0.8em;
-        }
-        .edit-btn {
-            background-color: #ffc107;
-            color: #333;
-        }
-        .input-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        .input-row input, .input-row select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            flex: 1;
-        }
-        .save-btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .user-table th, .user-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .user-table th {
-            background-color: #f2f2f2;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
+
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 1: ระบบล็อกอิน (Login System)                     -->
+    <!-- หัวข้อย่อย 1.1: Overlay สำหรับล็อกอิน                          -->
+    <!-- ============================================================== -->
     <div id="loginOverlay" class="login-overlay">
         <div class="login-box">
-            <h2>🔐 เข้าสู่ระบบ</h2>
+            <div class="login-header">
+                <div class="login-icon-bg">🔐</div>
+                <h2>เข้าสู่ระบบ</h2>
+                <p>หน้าจอจัดการและรายงานโครงการ(น้องโค้ก)</p>
+            </div>
+    
             <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
                 <div class="input-group">
                     <label>ชื่อผู้ใช้ (Username)</label>
-                    <input type="text" id="username" required placeholder="admin หรือ user">
+                    <div class="input-wrapper">
+                        <span class="icon">👤</span>
+                        <input type="text" id="username" required placeholder="กรอกชื่อผู้ใช้งาน">
+                    </div>
                 </div>
+    
                 <div class="input-group">
                     <label>รหัสผ่าน (Password)</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" required placeholder="รหัสผ่าน">
-                        <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                        <span class="icon">🔑</span>
+                        <input type="password" id="password" required placeholder="กรอกรหัสผ่าน">
+                        <button type="button" class="toggle-password" onclick="togglePassword()" title="แสดง/ซ่อน รหัสผ่าน">👁️</button>
                     </div>
                 </div>
+    
                 <div class="remember-group">
-                    <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe">จำรหัสผ่าน</label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        จดจำฉันไว้ในระบบ
+                    </label>
                 </div>
-                <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
-                <div class="login-hint">
-                    <p><b>📝 สำหรับทดสอบใช้งาน:</b></p>
-                    <p>👑 Admin: admin / admin123</p>
-                    <p>👤 User: user / user123</p>
-                    <p style="font-size: 12px; color: #888; margin-top: 8px;">⚠️ หากเข้าไม่ได้ รอระบบโหลดสักครู่</p>
-                </div>
+    
+                <button type="submit" class="login-btn">เข้าสู่ระบบ 🚀</button>
+                
             </form>
         </div>
     </div>
 
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 2: แถบแสดงสถานะผู้ใช้และปุ่มออกจากระบบ            -->
+    <!-- หัวข้อย่อย 2.1: แถบข้อมูลผู้ใช้และปุ่ม Logout                   -->
+    <!-- ============================================================== -->
     <div class="user-info" id="userInfo" style="display: none;">
         <span>👤 สิทธิ์: <strong id="roleDisplay"></strong></span>
         <button onclick="logout()" class="logout-btn">ออกจากระบบ</button>
     </div>
 
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 3: หน้าจอหลักของแอปพลิเคชัน (Main Application)    -->
+    <!-- ============================================================== -->
     <div class="container" id="mainApp" style="display: none;">
-        <h1>🔬 หน้าจอจัดการและรายงานโครงการ(น้องโค้ก)</h1>
         
+        <!-- หัวข้อย่อย 3.1: หัวข้อโครงการพร้อมปุ่มแก้ไข -->
+        <div class="project-header" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
+            <h1 id="projectTitle">กำลังโหลดชื่อโครงการ...</h1>
+            <button id="editTitleBtn" onclick="openTitleEditor()" style="display:none; cursor:pointer; background: none; border: none; font-size: 1.5rem;">✏️</button>
+        </div>
+        
+        <!-- หัวข้อย่อย 3.2: แถบสถานะการเชื่อมต่อ ESP32 และ Firebase -->
         <div class="status-bar">
             <div>
                 <span>🔌 ESP32 Connection: </span>
                 <span id="espStatus" class="connection-status offline">Disconnected</span>
             </div>
-            <div style="margin-top: 10px;">
-                <span>📱 PWA Status: </span>
-                <span id="pwaStatus" class="connection-status online">Online</span>
-            </div>
-            <div class="sync-status" id="syncStatus">
-                ✅ Ready
+            <div class="sync-status" id="syncStatus">✅ Ready</div>
+        </div>
+
+        <!-- หัวข้อย่อย 3.3: กล่องแสดงรายชื่อผู้ใช้ออนไลน์ (PRESENCE BOX) -->
+        <div id="onlineUsersBox" class="online-users-box">
+            <div class="online-users-container">
+                <small style="color: #ddd;">🟢 ออนไลน์อยู่ตอนนี้<span id="onlineCountBadge"></span>:</small>
+                <div id="onlineUsersList" style="margin-top: 8px; color: #fff; display: flex; flex-wrap: wrap; gap: 5px;">
+                    <span style="font-size: 0.9em; opacity: 0.7;">กำลังตรวจสอบสถานะ...</span>
+                </div>
             </div>
         </div>
 
-        <div class="sensor-grid">
-            <div class="sensor-card">
-                <div class="sensor-title">📡 รายงานระดับน้ำ</div>
-                <div class="sensor-value">
-                    <span id="ultrasonicValue">0</span>
-                    <span class="sensor-unit">cm</span>
-                </div>
-                <div class="timestamp" id="ultrasonicTime">ข้อมูลล่าสุด: --:--:--</div>
-            </div>
-
-            <div class="sensor-card">
-                <div class="sensor-title">🌱 รายงานสภาพดิน</div>
-                <div class="sensor-value">
-                    <span id="soilValue">0</span>
-                    <span class="sensor-unit">%</span>
-                </div>
-                <div class="timestamp" id="soilTime">ข้อมูลล่าสุด: --:--:--</div>
-            </div>
-
-            <div class="sensor-card">
-                <div class="sensor-title">🌧️ รายงานฝนตก</div>
-                <div class="sensor-value">
-                    <span id="rainValue">0</span>
-                    <span class="sensor-unit">%</span>
-                </div>
-                <div class="timestamp" id="rainTime">ข้อมูลล่าสุด: --:--:--</div>
-            </div>
-
-            <div class="sensor-card">
-                <div class="sensor-title">🧪 รายงานค่าน้ำ</div>
-                <div class="sensor-value">
-                    <span id="phValue">0</span>
-                    <span class="sensor-unit">pH</span>
-                </div>
-                <div class="timestamp" id="phTime">ข้อมูลล่าสุด: --:--:--</div>
+        <!-- หัวข้อย่อย 3.4: กริดแสดงค่าจากเซนเซอร์ -->
+        <div class="sensor-grid" id="sensorGridContainer">
+            <div style="width:100%; text-align:center; color:#fff; grid-column: 1 / -1;">
+                กำลังโหลดการตั้งค่าอุปกรณ์...
             </div>
         </div>
 
+        <!-- หัวข้อย่อย 3.5: พื้นที่แสดงกราฟ -->
         <div class="chart-container">
             <canvas id="sensorChart"></canvas>
         </div>
 
+        <!-- หัวข้อย่อย 3.6: ปุ่มควบคุมสำหรับแอดมิน -->
         <div class="controls" id="adminControls">
-            <button onclick="window.exportToCSV && exportToCSV()">📊 Export to CSV</button>
             <button onclick="window.clearLocalData && clearLocalData()" class="danger">🗑️ Clear Local Data</button>
-            <button onclick="window.syncToFirebase && syncToFirebase()">☁️ Sync to Firebase</button>
-            <button onclick="window.loadHistoryData && loadHistoryData()">📈 Load History</button>
-            <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้ (Admin)</button>
+            <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้</button>
+            <button onclick="window.openDeviceManager && openDeviceManager()" style="background-color: #2196F3;">⚙️ จัดการบอร์ดและเซนเซอร์</button>
         </div>
     </div>
 
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 4: Modal สำหรับแก้ไขชื่อโครงการ                    -->
+    <!-- หัวข้อย่อย 4.1: โครงสร้าง Modal แก้ไขชื่อโครงการ                -->
+    <!-- ============================================================== -->
+    <div id="titleModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ แก้ไขชื่อโครงการ</h2>
+                <button onclick="closeTitleEditor()" class="close-btn">❌</button>
+            </div>
+            <input type="text" id="newProjectTitle" placeholder="กรอกชื่อใหม่" style="width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveProjectTitle()" class="save-btn" style="flex:1;">💾 บันทึก</button>
+                <button onclick="deleteProjectTitle()" class="danger" style="flex:1;">🗑️ ลบชื่อโครงการ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 5: Modal สำหรับจัดการผู้ใช้งาน (User Manager)       -->
+    <!-- หัวข้อย่อย 5.1: โครงสร้าง Modal จัดการผู้ใช้                    -->
+    <!-- ============================================================== -->
     <div id="userModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>👥 จัดการผู้ใช้งาน</h2>
                 <button onclick="closeUserManager()" class="close-btn">❌</button>
             </div>
-            
             <div class="user-management-form">
-                <h3>เพิ่ม / แก้ไข ผู้ใช้งาน</h3>
                 <div class="input-row">
-                    <input type="text" id="manageUsername" placeholder="Username (ชื่อผู้ใช้)">
-                    <input type="text" id="managePassword" placeholder="Password (รหัสผ่าน)">
+                    <input type="text" id="manageUsername" placeholder="Username">
+                    <input type="text" id="managePassword" placeholder="Password">
                     <select id="manageRole">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -229,76 +191,112 @@ const firebaseConfig = {
                     <button onclick="saveUser()" class="save-btn">💾 บันทึก</button>
                 </div>
             </div>
+            <table class="user-table">
+                <thead><tr><th>Username</th><th>Password</th><th>Role</th><th>Action</th></tr></thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+    </div>
 
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 6: Modal สำหรับจัดการอุปกรณ์เซนเซอร์ (Device Manager) -->
+    <!-- หัวข้อย่อย 6.1: โครงสร้าง Modal จัดการอุปกรณ์เซนเซอร์           -->
+    <!-- หัวข้อย่อย 6.2: ปุ่ม USB Provisioning (เพิ่มเติมจากไฟล์ 18)      -->
+    <!-- ============================================================== -->
+    <div id="deviceModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ จัดการอุปกรณ์เซนเซอร์</h2>
+                <!-- ✅ หัวข้อย่อย 6.2.1: ปุ่มสำหรับเริ่มกระบวนการติดตั้งบอร์ดใหม่ผ่าน USB (เพิ่มจากไฟล์ 18) -->
+                <button onclick="startProvisioningProcess()" class="save-btn" style="background-color: #4CAF50;">➕ เพิ่มและตั้งค่าบอร์ดใหม่ (USB)</button>
+                <button onclick="closeDeviceManager()" class="close-btn">❌</button>
+            </div>
+            <div class="user-management-form">
+                <h3>เพิ่ม / แก้ไข อุปกรณ์</h3>
+                <div class="input-row">
+                    <input type="text" id="devId" placeholder="ID (เช่น us_01)">
+                    <input type="text" id="devName" placeholder="ชื่อแสดงผล (เช่น บ่อปลา 1)">
+                    <select id="devType">
+                        <option value="ultrasonic">Ultrasonic (ระยะ)</option>
+                        <option value="soil">Soil (ความชื้นดิน)</option>
+                        <option value="rain">Rain (น้ำฝน)</option>
+                        <option value="ph">pH (ค่ากรดด่าง)</option>
+                        <option value="temp">Temperature (อุณหภูมิ)</option>
+                    </select>
+                    <input type="text" id="devUnit" placeholder="หน่วย (เช่น cm, %)">
+                    <button onclick="saveDevice()" class="save-btn">➕ บันทึก</button>
+                </div>
+                <p style="font-size:0.8em; color:#666; margin-top:5px;">* ID ต้องเป็นภาษาอังกฤษ ตัวเลข หรือขีดล่าง ห้ามมีเว้นวรรค (ใช้สำหรับอ้างอิงในโค้ดบอร์ด ESP32)</p>
+            </div>
             <div class="user-list-container">
                 <table class="user-table">
                     <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Password</th>
-                            <th>Role</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>ID</th><th>ชื่อจุดติดตั้ง</th><th>ชนิด / หน่วย</th><th>สถานะการทำงาน</th><th>จัดการ</th></tr>
                     </thead>
-                    <tbody id="userTableBody">
-                        <tr><td colspan="4" style="text-align:center;">กำลังโหลด...</td></tr>
+                    <tbody id="deviceTableBody"><tr><td colspan="5" style="text-align:center;">กำลังโหลด...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('✅ Service Worker registered', reg.scope))
-                    .catch(err => console.error('❌ Service Worker registration failed: ', err));
-            });
-        }
-        
-        // Fix for beforeinstallprompt warning - don't call preventDefault unnecessarily
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Store the event for later use
-            deferredPrompt = e;
-            console.log('📱 PWA install prompt available');
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 7: Modal สำหรับตั้งค่าระบบและสำรองข้อมูล (Settings & Backup) -->
+    <!-- หัวข้อย่อย 7.1: โครงสร้าง Modal ตั้งค่าระบบ                      -->
+    <!-- ============================================================== -->
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛠️ ตั้งค่าระบบ & สำรองข้อมูล</h2>
+                <button onclick="closeSettingsManager()" class="close-btn">❌</button>
+            </div>
             
-            // Show install button only if needed
-            if (!document.getElementById('pwaInstallBtn')) {
-                const installBtn = document.createElement('button');
-                installBtn.id = 'pwaInstallBtn';
-                installBtn.textContent = '📱 ติดตั้งแอป';
-                installBtn.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    z-index: 1000;
-                    padding: 12px 20px;
-                    background: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 25px;
-                    cursor: pointer;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    font-size: 14px;
-                `;
-                installBtn.onclick = async () => {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            console.log('PWA installed');
-                        }
-                        deferredPrompt = null;
-                        installBtn.remove();
-                    }
-                };
-                document.body.appendChild(installBtn);
+            <div class="user-management-form">
+                <h3>⏱️ ความถี่ในการจัดเก็บสถิติลง Firebase</h3>
+                <p style="font-size:0.85em; color:#666; margin-bottom:10px;">* คำเตือน: หน้าเว็บต้องเปิดทิ้งไว้ ระบบถึงจะทำการบันทึกข้อมูลตามเวลาที่ตั้ง</p>
+                <div class="input-row" style="align-items: center;">
+                    <label>บันทึกทุกๆ : </label>
+                    <input type="number" id="logInterval" min="1" placeholder="จำนวนนาที" style="max-width: 150px;">
+                    <label> นาที</label>
+                    <button onclick="saveLogInterval()" class="save-btn">💾 บันทึกเวลา</button>
+                </div>
+            </div>
+
+            <div class="user-management-form" style="margin-top: 20px;">
+                <h3>💾 ระบบสำรองข้อมูล (Offline Backup)</h3>
+                <p style="font-size:0.85em; color:#666; margin-bottom:10px;">ดาวน์โหลดสถิติปัจจุบันเก็บไว้ในเครื่อง หรือโหลดไฟล์เก่ากลับมาแสดงผลในกราฟ</p>
+                
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <button onclick="exportDataOffline()" style="background-color: #4CAF50; width: 50%;">📥 ดาวน์โหลด Backup (JSON)</button>
+                    
+                    <div style="width: 50%; display: flex; flex-direction: column; gap: 5px;">
+                        <label for="importFile" class="save-btn" style="text-align: center; background-color: #FF9800; cursor: pointer; padding: 10px; border-radius: 8px; color: white;">
+                            📤 โหลดไฟล์ Backup คืนค่า
+                        </label>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importDataOffline(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 8: Scripts สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button) -->
+    <!-- หัวข้อย่อย 8.1: เพิ่มปุ่มตั้งค่าระบบเข้าไปในแถบควบคุม Admin      -->
+    <!-- ============================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminControls = document.getElementById('adminControls');
+            if(adminControls) {
+                adminControls.innerHTML += `<button onclick="window.openSettingsManager && openSettingsManager()" style="background-color: #9C27B0;">🛠️ ตั้งค่าระบบ & สำรองข้อมูล</button>`;
             }
         });
     </script>
-    
+
+    <!-- ============================================================== -->
+    <!-- หัวข้อหลักที่ 9: เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)     -->
+    <!-- หัวข้อย่อย 9.1: การทำงานทั้งหมดจะอยู่ในไฟล์ script.js           -->
+    <!-- ============================================================== -->
     <script src="script.js"></script>
 </body>
 </html>
