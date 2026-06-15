@@ -13,6 +13,9 @@ let sensorHistory = {
 
 let connectionMode = 'offline';
 
+// ✅ หัวข้อย่อย 1.1: ตัวแปรสำหรับเก็บ interval ของ Presence (เพิ่มตามไฟล์ 17)
+let presenceIntervalId = null;
+
 // ==========================================
 // 🏷️ หัวข้อหลักที่ 2: ระบบจัดการชื่อโครงการ (Project Title Management)
 // ==========================================
@@ -105,6 +108,8 @@ window.deleteProjectTitle = async function() {
  * หัวข้อย่อย 3.1: ฟังก์ชันอัปเดตสถานะออนไลน์ของผู้ใช้ พร้อม setInterval อัปเดต lastSeen ทุก 30 วินาที
  * @param {string} username - ชื่อผู้ใช้
  * @param {string} role - สิทธิ์ของผู้ใช้ (admin/user)
+ * 
+ * ✅ แก้ไขตามไฟล์ 17: เก็บ ID ของ interval ไว้ใน presenceIntervalId
  */
 function updatePresence(username, role) {
     if (!window.db || !username) return;
@@ -124,8 +129,9 @@ function updatePresence(username, role) {
         }
     });
 
-    // อัปเดต lastSeen ทุก 30 วินาที
-    setInterval(() => {
+    // ✅ แก้ไขตามไฟล์ 17: เปลี่ยนจาก setInterval ปกติ เป็นการเก็บ ID ไว้ใน presenceIntervalId
+    if (presenceIntervalId) clearInterval(presenceIntervalId);
+    presenceIntervalId = setInterval(() => {
         window.update(presenceRef, {
             lastSeen: new Date().toISOString()
         }).catch(err => console.warn("⚠️ lastSeen update error:", err));
@@ -144,6 +150,8 @@ function removePresence(username) {
 
 /**
  * หัวข้อย่อย 3.3: ฟังก์ชันแสดงรายชื่อผู้ใช้ที่ออนไลน์อยู่
+ * 
+ * ✅ แก้ไขตามไฟล์ 17: ปรับเวลาตรวจสอบจาก 120000ms (2 นาที) เป็น 45000ms (45 วินาที)
  */
 function initPresenceListener() {
     if (!window.db) return;
@@ -161,7 +169,8 @@ function initPresenceListener() {
             
             Object.keys(users).forEach(u => {
                 const lastSeen = new Date(users[u].lastSeen).getTime();
-                if (now - lastSeen < 120000) {
+                // ✅ แก้ไขตามไฟล์ 17: ปรับจาก 120000 เป็น 45000 (45 วินาที)
+                if (now - lastSeen < 45000) {
                     const roleIcon = users[u].role === 'admin' ? '👑' : '👤';
                     html += `<span style="display: inline-block; margin-right: 12px; margin-bottom: 5px;">🟢 ${roleIcon} ${u}</span>`;
                     userCount++;
@@ -315,21 +324,28 @@ function addOnlineUsersBox() {
 // ==========================================
 
 /**
- * หัวข้อย่อย 5.1: ออกจากระบบ
+ * หัวข้อย่อย 5.1: ออกจากระบบ (✅ แก้ไขตามไฟล์ 17: หยุด Interval และลบสถานะทันที)
  */
 window.logout = async function() {
     const currentUser = sessionStorage.getItem('currentUser');
+    
+    // ✅ แก้ไขตามไฟล์ 17: หยุดการส่ง lastSeen ก่อน
+    if (presenceIntervalId) {
+        clearInterval(presenceIntervalId);
+        presenceIntervalId = null;
+    }
     
     localStorage.removeItem('savedUsername');
     localStorage.removeItem('savedPassword');
     localStorage.removeItem('rememberMe');
     sessionStorage.clear();
 
+    // ✅ แก้ไขตามไฟล์ 17: ลบสถานะออกจาก Firebase ทันที
     if (currentUser && window.db) {
+        const presenceRef = window.ref(window.db, 'online_users/' + currentUser);
         try {
-            const presenceRef = window.ref(window.db, 'online_users/' + currentUser);
-            await presenceRef.onDisconnect().cancel();
-            await window.remove(presenceRef);
+            await presenceRef.onDisconnect().cancel(); // ยกเลิก event เก่า
+            await window.remove(presenceRef);          // ลบทันที
             console.log("✅ ลบสถานะออนไลน์เรียบร้อย");
         } catch (err) {
             console.error("❌ ลบสถานะออนไลน์ไม่สำเร็จ:", err);
@@ -443,17 +459,17 @@ async function renderUserTable() {
                     <td data-label="Username">
                         <strong>Username</strong><br>
                         ${escapeHtml(username)}
-                    </td>
+                     </td>
                     <td data-label="Password">
                         <strong>Password</strong><br>
                         ${escapeHtml(userData.password || '****')}
-                    </td>
+                     </td>
                     <td data-label="Role">
                         <strong>Role</strong><br>
                         <span class="role-badge ${userData.role === 'admin' ? 'role-admin' : 'role-user'}">
                             ${userData.role === 'admin' ? '👑 Admin' : '👤 User'}
                         </span>
-                    </td>
+                     </td>
                     <td data-label="Action">
                         <strong>Action</strong><br>
                         <button onclick="editUser('${escapeHtml(username)}', '${escapeHtml(userData.password || '')}', '${userData.role}')"
@@ -464,12 +480,12 @@ async function renderUserTable() {
                             class="btn-small danger">
                             🗑️ ลบ
                         </button>
-                    </td>
+                     </td>
                 `;
                 tbody.appendChild(tr);
             }
         } else {
-            tbody.innerHTML = '<td><td colspan="4" style="text-align:center;">ไม่มีข้อมูลผู้ใช้</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">ไม่มีข้อมูลผู้ใช้</td></tr>';
         }
     } catch (error) {
         console.error("Error loading users:", error);
@@ -592,7 +608,7 @@ function renderDeviceTable() {
             <td data-label="จัดการ">
                 <button onclick="toggleDevice('${escapeHtml(id)}', ${config.enabled})" class="${toggleBtnClass}">${toggleBtnText}</button>
                 <button onclick="deleteDevice('${escapeHtml(id)}')" class="btn-small danger" style="margin-left:5px;">🗑️</button>
-            </td>
+             </td>
         `;
         tbody.appendChild(tr);
     }
@@ -1015,3 +1031,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
+
+// ==========================================
+// 📝 หัวข้อหลักที่ 15: สรุปการแก้ไขตามไฟล์ 17
+// ==========================================
+/**
+ * หัวข้อย่อย 15.1: รายการแก้ไขที่ทำตามไฟล์ 17
+ * 
+ * 1. หัวข้อหลักที่ 1 (Global Variables):
+ *    - เพิ่มตัวแปร let presenceIntervalId = null; สำหรับเก็บ ID ของ interval การอัปเดต lastSeen
+ * 
+ * 2. หัวข้อหลักที่ 3 (ระบบ Presence):
+ *    - หัวข้อย่อย 3.1: แก้ไขฟังก์ชัน updatePresence ให้เก็บ ID ของ interval ไว้ใน presenceIntervalId
+ *    - หัวข้อย่อย 3.3: แก้ไข initPresenceListener ปรับเวลาตรวจสอบจาก 120000ms (2 นาที) เป็น 45000ms (45 วินาที)
+ * 
+ * 3. หัวข้อหลักที่ 5 (ระบบ Logout):
+ *    - หัวข้อย่อย 5.1: แก้ไขฟังก์ชัน logout ให้หยุด interval (clearInterval) ก่อน
+ *    - เพิ่มการยกเลิก onDisconnect event (await presenceRef.onDisconnect().cancel())
+ *    - ลบสถานะออกจาก Firebase ทันที
+ */
