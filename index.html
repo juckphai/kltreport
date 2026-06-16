@@ -93,11 +93,19 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- 🟢 MODULE 2: แถบแสดงสถานะผู้ใช้และปุ่มออกจากระบบ                 -->
-    <!--   🔹 2.1 แถบข้อมูลผู้ใช้และปุ่ม Logout                           -->
+    <!-- 🟢 MODULE 2: แถบแสดงสถานะผู้ใช้และปุ่มออกจากระบบ (รวมออนไลน์อยู่ตอนนี้) -->
+    <!--   🔹 2.1 แถบข้อมูลผู้ใช้แบบรวม (ชื่อ, สถานะออนไลน์ของคนอื่น, ปุ่ม Logout) -->
     <!-- ============================================================== -->
     <div class="user-info" id="userInfo" style="display: none;">
-        <span>👤 สิทธิ์: <strong id="roleDisplay"></strong></span>
+        <div class="user-info-left">
+            <span class="user-avatar">👤</span>
+            <span class="user-name" id="currentUserName"></span>
+            <div class="online-users-compact" id="onlineUsersCompact">
+                <span class="online-indicator">🟢</span>
+                <span id="compactOnlineText">ออนไลน์ 0 คน</span>
+                <div class="compact-users-list" id="compactUsersList"></div>
+            </div>
+        </div>
         <button onclick="logout()" class="logout-btn">ออกจากระบบ</button>
     </div>
 
@@ -105,10 +113,9 @@
     <!-- 🟢 MODULE 3: หน้าจอหลักของแอปพลิเคชัน (Main Application)        -->
     <!--   🔹 3.1 หัวข้อโครงการพร้อมปุ่มแก้ไข                             -->
     <!--   🔹 3.2 แถบสถานะการเชื่อมต่อ ESP32 และ Firebase               -->
-    <!--   🔹 3.3 กล่องแสดงรายชื่อผู้ใช้ออนไลน์ (PRESENCE BOX)            -->
-    <!--   🔹 3.4 กริดแสดงค่าจากเซนเซอร์                                 -->
-    <!--   🔹 3.5 พื้นที่แสดงกราฟ                                        -->
-    <!--   🔹 3.6 ปุ่มควบคุมสำหรับแอดมิน                                 -->
+    <!--   🔹 3.3 กริดแสดงค่าจากเซนเซอร์                                 -->
+    <!--   🔹 3.4 พื้นที่แสดงกราฟ                                        -->
+    <!--   🔹 3.5 ปุ่มควบคุมสำหรับแอดมิน                                 -->
     <!-- ============================================================== -->
     <div class="container" id="mainApp" style="display: none;">
         
@@ -127,36 +134,37 @@
             <div class="sync-status" id="syncStatus">✅ Ready</div>
         </div>
 
-        <!-- 3.3 กล่องผู้ใช้ออนไลน์ -->
-        <div id="onlineUsersBox" class="online-users-box">
-            <div class="online-users-container">
-                <small style="color: #ddd;">🟢 ออนไลน์อยู่ตอนนี้<span id="onlineCountBadge"></span>:</small>
-                <div id="onlineUsersList" style="margin-top: 8px; color: #fff; display: flex; flex-wrap: wrap; gap: 5px;">
-                    <span style="font-size: 0.9em; opacity: 0.7;">กำลังตรวจสอบสถานะ...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3.4 กริดเซนเซอร์ -->
+        <!-- 3.3 กริดเซนเซอร์ -->
         <div class="sensor-grid" id="sensorGridContainer">
             <div style="width:100%; text-align:center; color:#fff; grid-column: 1 / -1;">
                 กำลังโหลดการตั้งค่าอุปกรณ์...
             </div>
         </div>
 
-        <!-- 3.5 กราฟ -->
+        <!-- 3.4 กราฟ -->
         <div class="chart-container">
             <canvas id="sensorChart"></canvas>
         </div>
 
-        <!-- 3.6 ปุ่มควบคุมแอดมิน -->
+        <!-- 3.5 ปุ่มควบคุมแอดมิน -->
         <div class="controls" id="adminControls">
             <button onclick="window.clearLocalData && clearLocalData()" class="danger">🗑️ Clear Local Data</button>
             <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้</button>
             <button onclick="window.openDeviceManager && openDeviceManager()" style="background-color: #2196F3;">⚙️ จัดการบอร์ดและเซนเซอร์</button>
         </div>
     </div>
-
+    <!-- 3.5.1 ปุ่มส่งรายงานสำหรับผู้ใช้งานทั่วไป (เพิ่มจากไฟล์ 14 และปรับปรุงตามไฟล์ 16) -->
+    <div class="user-actions" id="userActions" style="text-align: center; margin-top: 15px;">
+        <!-- 🔹 หัวข้อย่อย 3.5.1: เพิ่ม select สำหรับเลือกรูปแบบรายงาน -->
+        <select id="reportTypeSelect" style="padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #1e293b; color: #e2e8f0; border: 1px solid #475569;">
+            <option value="status">📊 รายงานสถานะฮาร์ดแวร์ปัจจุบัน</option>
+            <option value="system">⚙️ รายงานสภาพการทำงานของระบบ</option>
+        </select>
+        <br>
+        <button onclick="window.triggerManualReport && triggerManualReport()" class="tele-btn-manual" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); transition: transform 0.2s;">
+            🚀 ส่งรายงานทาง Telegram ทันที
+        </button>
+    </div>
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 4: Modal สำหรับแก้ไขชื่อโครงการ                        -->
     <!--   🔹 4.1 โครงสร้าง Modal แก้ไขชื่อโครงการ                        -->
@@ -177,76 +185,138 @@
 
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 5: Modal สำหรับจัดการผู้ใช้งาน (User Manager)           -->
-    <!--   🔹 5.1 โครงสร้าง Modal จัดการผู้ใช้ (ปรับปรุง Responsive ตามไฟล์ 17) -->
+    <!--   🔹 5.1 โครงสร้าง Modal จัดการผู้ใช้ (แบบตารางแนวนอนเลื่อนได้)    -->
     <!--   🔹 5.2 ฟอร์มเพิ่ม/แก้ไขผู้ใช้                                  -->
-    <!--   🔹 5.3 ตารางผู้ใช้แบบ Responsive พร้อม wrapper                -->
+    <!--   🔹 5.3 ตารางผู้ใช้แบบ Horizontal Scroll                       -->
     <!-- ============================================================== -->
     <div id="userModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1200px;">
             <div class="modal-header">
-                <h2>👥 จัดการผู้ใช้งาน</h2>
-                <button onclick="closeUserManager()" class="close-btn">❌</button>
+                <h2>👥 จัดการผู้ใช้งานระบบ</h2>
+                <button onclick="closeUserManager()" class="close-btn">❌ ปิด</button>
             </div>
+            
+            <!-- ฟอร์มเพิ่ม/แก้ไขผู้ใช้ -->
             <div class="user-management-form">
+                <h3 style="margin-bottom: 15px; color: #1a3a5f;">➕ เพิ่ม/แก้ไขข้อมูลผู้ใช้</h3>
                 <div class="input-row">
-                    <input type="text" id="manageUsername" placeholder="Username">
-                    <input type="text" id="managePassword" placeholder="Password">
+                    <input type="text" id="manageUsername" placeholder="👤 ชื่อผู้ใช้ (Username)" autocomplete="off">
+                    <input type="text" id="managePassword" placeholder="🔑 รหัสผ่าน (Password)" autocomplete="off">
                     <select id="manageRole">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
+                        <option value="user">👤 User (ผู้ใช้งานทั่วไป)</option>
+                        <option value="admin">👑 Admin (ผู้ดูแลระบบ)</option>
                     </select>
-                    <button onclick="saveUser()" class="save-btn">💾 บันทึก</button>
+                    <button onclick="saveUser()" class="save-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        💾 บันทึก
+                    </button>
                 </div>
+                <p style="font-size:0.75rem; color:#64748b; margin-top: 10px;">
+                    * หมายเหตุ: ชื่อผู้ใช้ต้องไม่ซ้ำกัน และรหัสผ่านแนะนำให้ตั้งอย่างน้อย 4 ตัวอักษร
+                </p>
             </div>
-            <!-- 🔹 5.3: user-table-wrapper เพิ่ม Scroll แนวนอน/แนวตั้ง และ Sticky Header -->
-            <div class="user-table-wrapper">
-                <table class="user-table">
-                    <thead>
-                        <tr><th>Username</th><th>Password</th><th>Role</th><th>Action</th></tr>
-                    </thead>
-                    <tbody id="userTableBody"></tbody>
-                </table>
+
+            <!-- ตารางแสดงรายการผู้ใช้แบบ Horizontal Scroll -->
+            <div style="margin-top: 20px;">
+                <h3 style="margin-bottom: 15px; color: #1a3a5f;">📋 รายการผู้ใช้งานทั้งหมด</h3>
+                <div class="user-table-wrapper">
+                    <table class="user-table" id="user-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">👤 ชื่อผู้ใช้</th>
+                                <th style="width: 25%;">🔐 รหัสผ่าน</th>
+                                <th style="width: 20%;">⭐ สิทธิ์การใช้งาน</th>
+                                <th style="width: 30%;">⚙️ จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">
+                                    📥 กำลังโหลดข้อมูล...
+                                 </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 6: Modal สำหรับจัดการอุปกรณ์เซนเซอร์ (Device Manager)   -->
-    <!--   🔹 6.1 โครงสร้าง Modal จัดการอุปกรณ์เซนเซอร์                   -->
+    <!--   🔹 6.1 โครงสร้าง Modal จัดการอุปกรณ์เซนเซอร์ (แบบตารางแนวนอน)   -->
     <!--   🔹 6.2 ปุ่ม USB Provisioning                                  -->
+    <!--   🔹 6.3 ฟอร์มเพิ่ม/แก้ไขอุปกรณ์ (เพิ่ม bankLevel, bottomLevel, warningLevel) -->
+    <!--   🔹 6.4 ตารางอุปกรณ์แบบ Horizontal Scroll (เพิ่มคอลัมน์ระดับตลิ่ง, ก้นบ่อ, เตือน) -->
     <!-- ============================================================== -->
     <div id="deviceModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1200px;">
             <div class="modal-header">
                 <h2>⚙️ จัดการอุปกรณ์เซนเซอร์</h2>
-                <button onclick="startProvisioningProcess()" class="save-btn" style="background-color: #4CAF50;">➕ เพิ่มและตั้งค่าบอร์ดใหม่ (USB)</button>
-                <button onclick="closeDeviceManager()" class="close-btn">❌</button>
-            </div>
-            <div class="user-management-form">
-                <h3>เพิ่ม / แก้ไข อุปกรณ์</h3>
-                <div class="input-row">
-                    <input type="text" id="devId" placeholder="ID (เช่น us_01)">
-                    <input type="text" id="devName" placeholder="ชื่อแสดงผล (เช่น บ่อปลา 1)">
-                    <select id="devType">
-                        <option value="ultrasonic">Ultrasonic (ระยะ)</option>
-                        <option value="soil">Soil (ความชื้นดิน)</option>
-                        <option value="rain">Rain (น้ำฝน)</option>
-                        <option value="ph">pH (ค่ากรดด่าง)</option>
-                        <option value="temp">Temperature (อุณหภูมิ)</option>
-                    </select>
-                    <input type="text" id="devUnit" placeholder="หน่วย (เช่น cm, %)">
-                    <button onclick="saveDevice()" class="save-btn">➕ บันทึก</button>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="startProvisioningProcess()" class="save-btn" style="background: linear-gradient(135deg, #4CAF50, #388E3C); margin: 0;">
+                        🔌 เพิ่มและตั้งค่าบอร์ดใหม่ (USB)
+                    </button>
+                    <button onclick="closeDeviceManager()" class="close-btn">❌ ปิด</button>
                 </div>
-                <p style="font-size:0.8em; color:#666; margin-top:5px;">* ID ต้องเป็นภาษาอังกฤษ ตัวเลข หรือขีดล่าง ห้ามมีเว้นวรรค (ใช้สำหรับอ้างอิงในโค้ดบอร์ด ESP32)</p>
             </div>
-            <div class="user-list-container">
-                <table class="user-table">
-                    <thead>
-                        <tr><th>ID</th><th>ชื่อจุดติดตั้ง</th><th>ชนิด / หน่วย</th><th>สถานะการทำงาน</th><th>จัดการ</th></tr>
-                    </thead>
-                    <tbody id="deviceTableBody"><tr><td colspan="5" style="text-align:center;">กำลังโหลด...</td></tr>
-                    </tbody>
-                </table>
+            
+            <!-- 🔹 6.3 ฟอร์มเพิ่ม/แก้ไขอุปกรณ์ (เพิ่ม bankLevel, bottomLevel, warningLevel) -->
+            <div class="user-management-form">
+                <h3 style="margin-bottom: 15px; color: #1a3a5f;">➕ เพิ่ม/แก้ไขอุปกรณ์เซนเซอร์</h3>
+                <div class="input-row">
+                    <input type="text" id="devId" placeholder="🆔 ID (เช่น us_01, soil_01)" autocomplete="off">
+                    <input type="text" id="devName" placeholder="📛 ชื่อจุดติดตั้ง (เช่น บ่อปลา 1)" autocomplete="off">
+                    <select id="devType">
+                        <option value="ultrasonic">📡 Ultrasonic (วัดระยะ)</option>
+                        <option value="soil">🌱 Soil (ความชื้นดิน)</option>
+                        <option value="rain">🌧️ Rain (น้ำฝน)</option>
+                        <option value="ph">🧪 pH (ค่ากรดด่าง)</option>
+                        <option value="temp">🌡️ Temperature (อุณหภูมิ)</option>
+                    </select>
+                    <input type="text" id="devUnit" placeholder="📏 หน่วย (เช่น cm, %, °C)" autocomplete="off">
+                </div>
+                <!-- 🔹 6.3.1: แถวที่ 2 สำหรับ bankLevel, bottomLevel, warningLevel -->
+                <div class="input-row" style="margin-top: 12px;">
+                    <input type="text" id="devBankLevel" placeholder="📏 ระดับตลิ่ง (bankLevel) เช่น 100" autocomplete="off">
+                    <input type="text" id="devBottomLevel" placeholder="📏 ระดับก้นบ่อ (bottomLevel) เช่น 10" autocomplete="off">
+                    <input type="text" id="devWarningLevel" placeholder="📏 ระดับเตือนภัย (warningLevel) เช่น 80" autocomplete="off">
+                    <button onclick="saveDevice()" class="save-btn" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        💾 บันทึก
+                    </button>
+                </div>
+                <p style="font-size:0.75rem; color:#64748b; margin-top: 10px;">
+                    * ID ต้องเป็นภาษาอังกฤษ ตัวเลข หรือขีดล่าง ห้ามมีเว้นวรรค (ใช้สำหรับอ้างอิงในโค้ดบอร์ด ESP32)
+                    <br>* ระดับตลิ่ง (bankLevel) = ค่าระยะที่น้ำท่วมตลิ่ง, ระดับก้นบ่อ (bottomLevel) = ค่าระยะเมื่อน้ำแห้ง, ระดับเตือน (warningLevel) = ค่าระยะแจ้งเตือนก่อนน้ำท่วม
+                </p>
+            </div>
+
+            <!-- 🔹 6.4 ตารางอุปกรณ์แบบ Horizontal Scroll (เพิ่มคอลัมน์ระดับตลิ่ง, ก้นบ่อ, เตือน) -->
+            <div style="margin-top: 20px;">
+                <h3 style="margin-bottom: 15px; color: #1a3a5f;">📋 รายการอุปกรณ์เซนเซอร์ทั้งหมด</h3>
+                <div class="device-table-wrapper">
+                    <table class="device-table" id="device-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">🆔 ID</th>
+                                <th style="width: 18%;">📛 ชื่อจุดติดตั้ง</th>
+                                <th style="width: 15%;">🔍 ชนิดเซนเซอร์</th>
+                                <th style="width: 8%;">📏 หน่วย</th>
+                                <th style="width: 10%;">📏 ระดับตลิ่ง</th>
+                                <th style="width: 10%;">📏 ระดับก้นบ่อ</th>
+                                <th style="width: 10%;">📏 ระดับเตือน</th>
+                                <th style="width: 8%;">✅ สถานะ</th>
+                                <th style="width: 11%;">⚙️ จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody">
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 40px;">
+                                    📥 กำลังโหลดข้อมูลอุปกรณ์...
+                                 </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -254,14 +324,16 @@
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 7: Modal สำหรับตั้งค่าระบบและสำรองข้อมูล (Settings & Backup) -->
     <!--   🔹 7.1 โครงสร้าง Modal ตั้งค่าระบบ                              -->
+    <!--   🔹 7.2 ส่วนตั้งค่า Telegram (เพิ่มจากไฟล์ 13)                   -->
     <!-- ============================================================== -->
     <div id="settingsModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h2>🛠️ ตั้งค่าระบบ & สำรองข้อมูล</h2>
                 <button onclick="closeSettingsManager()" class="close-btn">❌</button>
             </div>
             
+            <!-- 🔹 7.1.1: ส่วนตั้งค่าความถี่ในการบันทึก -->
             <div class="user-management-form">
                 <h3>⏱️ ความถี่ในการจัดเก็บสถิติลง Firebase</h3>
                 <p style="font-size:0.85em; color:#666; margin-bottom:10px;">* คำเตือน: หน้าเว็บต้องเปิดทิ้งไว้ ระบบถึงจะทำการบันทึกข้อมูลตามเวลาที่ตั้ง</p>
@@ -273,15 +345,102 @@
                 </div>
             </div>
 
-            <div class="user-management-form" style="margin-top: 20px;">
+            <!-- ========================================================== -->
+            <!-- 🟢 MODULE 7.2: ส่วนตั้งค่า Telegram (เพิ่มจากไฟล์ 13)         -->
+            <!--   🔹 7.2.1 โครงสร้างการตั้งค่า Telegram                      -->
+            <!--   🔹 7.2.2 ช่องกรอก Token และตั้งเวลา/เปิดอัตโนมัติ         -->
+            <!--   🔹 7.2.3 ตารางรายชื่อผู้รับ (เพิ่ม/ลบ)                    -->
+            <!--   🔹 7.2.4 ตารางประวัติการส่งล่าสุด                         -->
+            <!--   🔹 7.2.5 ปุ่มบันทึกและส่งทันที (Manual Trigger)           -->
+            <!-- ========================================================== -->
+            <div class="user-management-form" style="margin-top: 20px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                <h3>💬 ตั้งค่า Telegram (Text Only)</h3>
+                
+                <!-- 🔹 7.2.1: Container หลักสำหรับ Telegram -->
+                <div class="tele-settings-container">
+                    
+                    <!-- 🔹 7.2.2: ช่องกรอก Token และตั้งเวลา/เปิดอัตโนมัติ -->
+                    <div class="tele-input-row">
+                        <div class="tele-input-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="teleBotToken" placeholder="Bot Token" style="flex: 2; min-width: 200px;">
+                            <input type="time" id="teleSendTime" style="flex: 1; min-width: 120px;">
+                            <label style="display:flex; align-items:center; gap:5px; flex: 0.5; min-width: 80px;">
+                                <input type="checkbox" id="teleEnabled"> อัตโนมัติ
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 🔹 7.2.5: ปุ่มบันทึกและส่งทันที (Manual Trigger) -->
+                    <div class="tele-actions" style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button onclick="saveTelegramConfig()" class="tele-btn-save" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">💾 บันทึกตั้งค่า</button>
+                        <button onclick="triggerManualReport()" class="tele-btn-manual" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">🚀 ส่งทันที</button>
+                    </div>
+                </div>
+
+                <!-- 🔹 7.2.3: ตารางรายชื่อผู้รับ (เพิ่ม/ลบ) -->
+                <!-- ✅ ปรับปรุงตามไฟล์ 17: เพิ่มปุ่มแก้ไข -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #1a3a5f; margin-bottom: 10px;">👥 รายชื่อผู้รับ</h4>
+                    <div class="input-row" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <input type="text" id="subName" placeholder="ชื่อผู้รับ" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                        <input type="text" id="subChatId" placeholder="Chat ID" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                        <button onclick="saveSubscriber()" class="save-btn" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 8px 16px;">➕ เพิ่ม</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="user-table" style="width: 100%; min-width: 400px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30%;">ชื่อ</th>
+                                    <th style="width: 40%;">Chat ID</th>
+                                    <th style="width: 30%;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align:center; padding: 20px; color:#64748b;">📭 กำลังโหลดรายชื่อ...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 🔹 7.2.4: ตารางประวัติการส่งล่าสุด -->
+                <!-- ✅ ปรับปรุงตามไฟล์ 17: เพิ่มปุ่มลบและล้างทั้งหมด -->
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #1a3a5f; margin-bottom: 10px;">📜 ประวัติการส่งล่าสุด</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="user-table" style="width: 100%; min-width: 400px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">เวลา</th>
+                                    <th style="width: 20%;">ถึง</th>
+                                    <th style="width: 20%;">ผู้ส่ง</th>
+                                    <th style="width: 15%;">สถานะ</th>
+                                    <th style="width: 25%;">
+                                        <button onclick="clearHistory()" class="danger" style="background:#d32f2f; padding:4px 8px; font-size:0.7rem; border:none; border-radius:4px; color:white; cursor:pointer;">🗑️ ล้างทั้งหมด</button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding: 20px; color:#64748b;">📭 ยังไม่มีประวัติการส่ง</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔹 7.1.2: ส่วนสำรองข้อมูล -->
+            <div class="user-management-form" style="margin-top: 20px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
                 <h3>💾 ระบบสำรองข้อมูล (Offline Backup)</h3>
                 <p style="font-size:0.85em; color:#666; margin-bottom:10px;">ดาวน์โหลดสถิติปัจจุบันเก็บไว้ในเครื่อง หรือโหลดไฟล์เก่ากลับมาแสดงผลในกราฟ</p>
                 
-                <div style="display: flex; gap: 15px; margin-top: 15px;">
-                    <button onclick="exportDataOffline()" style="background-color: #4CAF50; width: 50%;">📥 ดาวน์โหลด Backup (JSON)</button>
+                <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                    <button onclick="exportDataOffline()" style="background-color: #4CAF50; padding: 10px 20px; border: none; border-radius: 8px; color: white; cursor: pointer; flex: 1; min-width: 150px;">📥 ดาวน์โหลด Backup (JSON)</button>
                     
-                    <div style="width: 50%; display: flex; flex-direction: column; gap: 5px;">
-                        <label for="importFile" class="save-btn" style="text-align: center; background-color: #FF9800; cursor: pointer; padding: 10px; border-radius: 8px; color: white;">
+                    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 5px;">
+                        <label for="importFile" style="text-align: center; background-color: #FF9800; cursor: pointer; padding: 10px 20px; border-radius: 8px; color: white; border: none;">
                             📤 โหลดไฟล์ Backup คืนค่า
                         </label>
                         <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importDataOffline(event)">
@@ -293,7 +452,7 @@
 
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 8: Scripts สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button) -->
-    <!--   🔹 8.1 เพิ่มปุ่มตั้งค่าระบบเข้าไปในแถบควบคุม Admin              -->
+    <!--   🔹 8.1 เพิ่มปุ่มตั้งค่าระบบใน Admin Controls                   -->
     <!-- ============================================================== -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -306,7 +465,6 @@
 
     <!-- ============================================================== -->
     <!-- 🟢 MODULE 9: เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)         -->
-    <!--   🔹 9.1 การทำงานทั้งหมดจะอยู่ในไฟล์ script.js                   -->
     <!-- ============================================================== -->
     <script src="script.js"></script>
 </body>

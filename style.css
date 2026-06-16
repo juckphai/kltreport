@@ -1,3 +1,23 @@
+/* ============================================
+   TABLE OF CONTENTS
+   1. RESET & BASE STYLES
+   2. BACKGROUND EFFECTS
+   3. CONTAINER & HEADER
+   4. STATUS BAR
+   5. ONLINE USERS SECTION (ปรับปรุงใหม่ - รวมใน User Info)
+   6. SENSOR CARDS (SENSOR-GRID) - ปรับปรุงเพิ่ม Alert Badge
+   7. CHART & CONTROLS
+   8. MODAL OVERLAY & CONTENT
+   9. USER MANAGEMENT FORM & TABLE
+   10. USER INFO & LOGIN OVERLAY (ปรับปรุงใหม่)
+   11. RESPONSIVE DESIGN (MEDIA QUERIES)
+   12. SCROLLBAR STYLES
+   13. TABLE OVERRIDES (USER & DEVICE TABLES) - ปรับปรุงเพิ่มคอลัมน์
+   14. ALERT BADGE & FLOOD STATUS (เพิ่มใหม่ตามไฟล์ 18)
+   15. DEVICE LEVEL INPUT STYLES (เพิ่มใหม่ตามไฟล์ 18)
+============================================ */
+
+/* ========== 1. RESET & BASE STYLES ========== */
 * {
     margin: 0;
     padding: 0;
@@ -6,13 +26,13 @@
 
 body {
     font-family: 'Segoe UI', 'Prompt', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(145deg, #1a2a3a 0%, #0f2027 100%);
+    background: linear-gradient(145deg, #92DA78 0%, #7BC96A 30%, #5FB84E 60%, #3DA82E 100%);
     min-height: 100vh;
     padding: clamp(12px, 3vw, 24px);
     position: relative;
 }
 
-/* พื้นหลังที่มีลวดลายโปร่งแสง */
+/* ========== 2. BACKGROUND EFFECTS - เปลี่ยนเป็นลายดอกไม้สีอ่อน ========== */
 body::before {
     content: '';
     position: fixed;
@@ -20,11 +40,13 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path fill="white" d="M20,20 L30,10 L40,20 L30,30 Z M70,70 L80,60 L90,70 L80,80 Z M45,45 L55,35 L65,45 L55,55 Z"/><circle cx="85" cy="25" r="5"/><circle cx="15" cy="75" r="4"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><circle fill="%23ffffff" cx="20" cy="30" r="6"/><circle fill="%23ffffff" cx="80" cy="20" r="5"/><circle fill="%23ffffff" cx="50" cy="85" r="7"/><circle fill="%23ffffff" cx="90" cy="60" r="4"/><circle fill="%23ffffff" cx="10" cy="80" r="5"/><circle fill="%23ffffff" cx="60" cy="10" r="4"/><path fill="%23ffffff" d="M30,60 Q40,45 50,60 Q60,45 70,60 L70,70 L30,70 Z"/><path fill="%23ffffff" d="M40,40 Q45,30 50,40 Q55,30 60,40 L60,50 L40,50 Z"/></svg>');
     background-repeat: repeat;
+    background-size: 200px 200px;
     pointer-events: none;
 }
 
+/* ========== 3. CONTAINER & HEADER ========== */
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -32,20 +54,17 @@ body::before {
     z-index: 1;
 }
 
-/* ==========================================
-   🏷️ หัวข้อโครงการ
-   ========================================== */
 .project-header {
     margin-bottom: clamp(16px, 4vh, 30px);
 }
 
 .project-header h1 {
-    color: white;
+    color: #1a3a2a;
     text-align: center;
     font-size: clamp(1.4rem, 6vw, 2.2rem);
     font-weight: 700;
-    text-shadow: 3px 3px 8px rgba(0,0,0,0.4);
-    background: linear-gradient(135deg, #fff, #e0f2fe);
+    text-shadow: 2px 2px 8px rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, #1a3a2a, #2d5a3a, #3d7a4a);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -55,7 +74,7 @@ body::before {
 }
 
 #editTitleBtn {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.3);
     backdrop-filter: blur(8px);
     border-radius: 50%;
     width: 44px;
@@ -65,31 +84,30 @@ body::before {
     justify-content: center;
     font-size: 1.4rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: #1a3a2a;
 }
 
 #editTitleBtn:hover {
-    background: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.6);
     transform: rotate(15deg) scale(1.05);
 }
 
-/* ==========================================
-   📊 แถบสถานะ
-   ========================================== */
+/* ========== 4. STATUS BAR ========== */
 .status-bar {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.25);
     backdrop-filter: blur(12px);
     padding: clamp(12px, 2vh, 16px) clamp(15px, 4vw, 25px);
     border-radius: 60px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #1a3a2a;
 }
 
 .status-bar > div:first-child {
@@ -98,6 +116,7 @@ body::before {
     gap: 12px;
     flex-wrap: wrap;
     font-size: clamp(0.8rem, 3vw, 1rem);
+    color: #1a3a2a;
 }
 
 .connection-status {
@@ -108,62 +127,176 @@ body::before {
     border-radius: 40px;
     font-weight: bold;
     font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.online { background: #10b981; color: white; }
-.offline { background: #ef4444; color: white; }
+.online { background: #2d7a2d; color: white; }
+.offline { background: #c62828; color: white; }
 
 .sync-status {
     font-weight: bold;
-    background: rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.3);
     padding: 6px 14px;
     border-radius: 40px;
     font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    color: #1a3a2a;
 }
 
-/* ==========================================
-   🟢 กล่องผู้ใช้ออนไลน์
-   ========================================== */
-.online-users-box {
-    background: linear-gradient(105deg, rgba(16,185,129,0.15) 0%, rgba(59,130,246,0.1) 100%);
-    backdrop-filter: blur(10px);
-    border-radius: 28px;
-    padding: 12px 18px;
-    margin: 16px 0 24px 0;
-    border: 1px solid rgba(16,185,129,0.4);
-    transition: all 0.3s;
+/* ========== 5. USER INFO & ONLINE USERS ========== */
+.user-info {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(45, 122, 45, 0.88);
+    backdrop-filter: blur(16px);
+    padding: 8px 20px 8px 16px;
+    border-radius: 60px;
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
 }
 
-.online-users-container small {
-    font-size: clamp(0.75rem, 2.8vw, 0.85rem);
+.user-info-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.user-avatar {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.user-name {
+    color: #ffffff;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    color: #a7f3d0;
-}
-
-#onlineUsersList {
-    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-    margin-top: 8px;
-    gap: 8px;
-}
-
-#onlineUsersList span {
-    background: rgba(0,0,0,0.3);
+    font-size: 0.9rem;
+    background: rgba(255,255,255,0.2);
     padding: 4px 12px;
     border-radius: 40px;
-    backdrop-filter: blur(4px);
-    transition: 0.2s;
+    letter-spacing: 0.3px;
 }
 
-#onlineUsersList span:hover {
-    background: rgba(16,185,129,0.3);
-    transform: scale(1.02);
+/* ส่วนแสดงออนไลน์แบบ Compact */
+.online-users-compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 14px;
+    border-radius: 40px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* ==========================================
-   🃏 การ์ดเซนเซอร์ (Sensor Grid)
-   ========================================== */
+.online-users-compact:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.online-indicator {
+    font-size: 0.75rem;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; text-shadow: 0 0 8px #a5d6a7; }
+    100% { opacity: 0.6; }
+}
+
+#compactOnlineText {
+    color: #e8f5e9;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.compact-users-list {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: rgba(45, 122, 45, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 10px 0;
+    min-width: 180px;
+    max-height: 250px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1001;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    pointer-events: none;
+}
+
+.online-users-compact:hover .compact-users-list {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.compact-users-list .compact-user-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    color: #e8f5e9;
+    font-size: 0.8rem;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.compact-users-list .compact-user-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.compact-users-list .compact-user-item .role-icon {
+    font-size: 0.85rem;
+    min-width: 24px;
+}
+
+.compact-users-list .compact-user-item .username-text {
+    font-weight: 500;
+}
+
+.compact-users-list .online-count-header {
+    padding: 6px 16px;
+    color: #a5d6a7;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 18px;
+    border-radius: 40px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+
+.logout-btn:hover {
+    background: #c62828;
+    transform: translateY(-2px);
+}
+
+/* ========== 6. SENSOR CARDS ========== */
 .sensor-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -172,12 +305,12 @@ body::before {
 }
 
 .sensor-card {
-    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    background: linear-gradient(145deg, #ffffff, #f0f7e8);
     border-radius: 28px;
     padding: clamp(16px, 4vw, 24px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.6);
     position: relative;
     overflow: hidden;
 }
@@ -189,18 +322,28 @@ body::before {
     left: 0;
     width: 100%;
     height: 6px;
-    background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+    background: linear-gradient(90deg, #4CAF50, #66BB6A, #81C784);
+}
+
+.sensor-card.flood-alert::before {
+    background: linear-gradient(90deg, #c62828, #ef5350, #e57373) !important;
+    height: 8px;
+}
+
+.sensor-card.warning-alert::before {
+    background: linear-gradient(90deg, #e65100, #f57c00, #fb8c00) !important;
+    height: 8px;
 }
 
 .sensor-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 25px 45px rgba(0,0,0,0.25);
+    box-shadow: 0 25px 45px rgba(0,0,0,0.15);
 }
 
 .sensor-title {
     font-size: clamp(1rem, 4vw, 1.25rem);
     font-weight: 700;
-    color: #1e293b;
+    color: #1a3a2a;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -211,7 +354,7 @@ body::before {
 .sensor-value {
     font-size: clamp(1.8rem, 8vw, 3rem);
     font-weight: 800;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    background: linear-gradient(135deg, #1a3a2a, #2d7a2d, #4CAF50);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -224,15 +367,53 @@ body::before {
 .sensor-unit {
     font-size: clamp(0.7rem, 3vw, 0.9rem);
     font-weight: 500;
-    color: #64748b;
-    -webkit-text-fill-color: #64748b;
+    color: #2d6a3a;
+    -webkit-text-fill-color: #2d6a3a;
+}
+
+.sensor-bank-info {
+    font-size: 0.7rem;
+    color: #2d5a2a;
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: #e8f5e9;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.alert-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-top: 8px;
+    text-align: center;
+    animation: alertPulse 1.5s infinite;
+}
+
+@keyframes alertPulse {
+    0% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.8; transform: scale(1); }
+}
+
+.alert-badge.flood {
+    background: #c62828;
+    color: white;
+    box-shadow: 0 0 20px rgba(198, 40, 40, 0.4);
+}
+
+.alert-badge.warning {
+    background: #f57c00;
+    color: white;
+    box-shadow: 0 0 20px rgba(245, 124, 0, 0.3);
 }
 
 .timestamp {
-    color: #94a3b8;
+    color: #4a7a4a;
     font-size: clamp(0.65rem, 2.5vw, 0.75rem);
     margin-top: 12px;
-    border-top: 1px dashed #e2e8f0;
+    border-top: 1px dashed #c8e6c9;
     padding-top: 10px;
     text-align: right;
     display: flex;
@@ -241,15 +422,13 @@ body::before {
     gap: 6px;
 }
 
-/* ==========================================
-   📈 กราฟ & ปุ่มควบคุม
-   ========================================== */
+/* ========== 7. CHART & CONTROLS ========== */
 .chart-container {
     background: rgba(255,255,255,0.95);
     border-radius: 28px;
     padding: clamp(15px, 4vw, 25px);
     margin-bottom: 28px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     backdrop-filter: blur(2px);
 }
 
@@ -262,7 +441,7 @@ body::before {
 }
 
 button {
-    background: linear-gradient(105deg, #2c3e50, #1f2b38);
+    background: linear-gradient(105deg, #2d7a2d, #1a5a1a);
     color: white;
     border: none;
     padding: clamp(10px, 2.5vw, 14px) clamp(18px, 4vw, 28px);
@@ -271,7 +450,7 @@ button {
     font-size: clamp(0.8rem, 3vw, 0.95rem);
     font-weight: 600;
     transition: all 0.25s ease;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -281,7 +460,7 @@ button {
 button:hover {
     filter: brightness(1.08);
     transform: translateY(-3px);
-    box-shadow: 0 12px 22px rgba(0,0,0,0.25);
+    box-shadow: 0 12px 22px rgba(0,0,0,0.18);
 }
 
 button:active {
@@ -289,22 +468,15 @@ button:active {
 }
 
 button.danger {
-    background: linear-gradient(105deg, #dc2626, #b91c1c);
+    background: linear-gradient(105deg, #c62828, #b71c1c);
 }
 
-/* ปุ่มใน controls เพิ่มไอคอน */
-.controls button::before {
-    font-size: 1.2em;
-}
-
-/* ==========================================
-   🖼️ Modal Styles (Improved)
-   ========================================== */
+/* ========== 8. MODAL OVERLAY & CONTENT ========== */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(12px);
     display: flex;
     justify-content: center;
@@ -314,12 +486,12 @@ button.danger {
 }
 
 .modal-content {
-    background: linear-gradient(145deg, #ffffff, #fefefe);
+    background: linear-gradient(145deg, #ffffff, #f0f7e8);
     border-radius: 32px;
-    box-shadow: 0 35px 60px rgba(0,0,0,0.4);
+    box-shadow: 0 35px 60px rgba(0,0,0,0.25);
     padding: clamp(20px, 5vw, 32px);
     width: 95%;
-    max-width: 850px;
+    max-width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
     animation: modalPop 0.35s cubic-bezier(0.21, 1.11, 0.41, 1);
@@ -334,33 +506,36 @@ button.danger {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #eef2ff;
+    border-bottom: 2px solid #a5d6a7;
     padding-bottom: 16px;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .modal-header h2 {
     font-size: clamp(1.3rem, 5vw, 1.8rem);
-    color: #0f172a;
+    color: #1a3a2a;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .close-btn {
-    background: #f1f5f9;
-    color: #475569;
+    background: #e8f5e9;
+    color: #2d7a2d;
     border-radius: 60px;
     padding: 8px 16px;
     box-shadow: none;
 }
 .close-btn:hover {
-    background: #e2e8f0;
+    background: #c8e6c9;
     transform: scale(1.02);
 }
 
+/* ========== 9. USER MANAGEMENT FORM & TABLE ========== */
 .user-management-form {
-    background: #f8fafc;
+    background: #f1f8e9;
     border-radius: 24px;
     padding: clamp(16px, 3vw, 24px);
     margin-bottom: 24px;
@@ -376,96 +551,25 @@ button.danger {
     flex: 1;
     min-width: 140px;
     padding: 12px 16px;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid #a5d6a7;
     border-radius: 40px;
     font-size: clamp(0.8rem, 2.8vw, 0.9rem);
     transition: 0.2s;
     background: white;
+    color: #1a3a2a;
 }
 .input-row input:focus, .input-row select:focus {
-    border-color: #3b82f6;
+    border-color: #4CAF50;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
-/* Tables */
-.user-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-.user-table th, .user-table td {
-    padding: clamp(10px, 2vw, 14px);
-    text-align: left;
-    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
-    border-bottom: 1px solid #eef2ff;
-}
-.user-table th {
-    background: #eef2ff;
-    color: #1e293b;
-    font-weight: 700;
-}
-
-/* Badges */
-.status-badge {
-    padding: 5px 12px;
-    border-radius: 40px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    display: inline-block;
-}
-.status-on { background: #d1fae5; color: #065f46; }
-.status-off { background: #fee2e2; color: #991b1b; }
-
-.btn-small {
-    padding: 6px 14px;
-    font-size: 0.75rem;
-    border-radius: 30px;
-    gap: 6px;
-}
-.edit-btn { background: #f59e0b; color: white; box-shadow: none; }
-.edit-btn:hover { background: #d97706; }
-
-/* ==========================================
-   👤 User Info Header
-   ========================================== */
-.user-info {
-    position: fixed;
-    top: 16px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(12px);
-    padding: 8px 18px;
-    border-radius: 60px;
-    z-index: 1000;
-    font-size: clamp(0.75rem, 3vw, 0.9rem);
-    font-weight: 500;
-    color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-}
-.logout-btn {
-    background: rgba(255,255,255,0.2);
-    padding: 5px 16px;
-    box-shadow: none;
-    font-size: 0.8rem;
-}
-.logout-btn:hover {
-    background: #ef4444;
-}
-
-/* ==========================================
-   🔐 Login Screen Glow & Modern
-   ========================================== */
+/* ========== 10. LOGIN OVERLAY ========== */
 .login-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: radial-gradient(circle at 30% 10%, #0b1c2a, #07121c);
+    background: radial-gradient(circle at 30% 10%, #2d7a2d, #1a4a1a, #0d2a0d);
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
@@ -476,7 +580,7 @@ button.danger {
 .login-box {
     background: rgba(255, 255, 255, 0.98);
     border-radius: 48px;
-    box-shadow: 0 30px 55px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.3);
+    box-shadow: 0 30px 55px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
     padding: clamp(30px, 6vw, 50px) clamp(25px, 5vw, 45px);
     width: 90%;
     max-width: 450px;
@@ -490,19 +594,19 @@ button.danger {
 
 .login-icon-bg {
     font-size: 3.2rem;
-    background: linear-gradient(145deg, #e0f2fe, #bae6fd);
+    background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
     width: 90px;
     height: 90px;
     line-height: 90px;
     border-radius: 50%;
     margin: 0 auto 20px;
-    box-shadow: 0 12px 28px rgba(2, 132, 199, 0.4);
+    box-shadow: 0 12px 28px rgba(76, 175, 80, 0.3);
     transition: 0.2s;
 }
 
 .login-header h2 {
     font-size: clamp(1.5rem, 6vw, 2rem);
-    background: linear-gradient(135deg, #0f2b3d, #1e3a5f);
+    background: linear-gradient(135deg, #1a4a1a, #2d7a2d);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -511,13 +615,12 @@ button.danger {
 
 .login-header p {
     text-align: center;
-    color: #475569;
+    color: #2d6a3a;
     margin-top: 8px;
 }
 
-/* ✅ ปรับแต่งปุ่มเข้าสู่ระบบให้อยู่กึ่งกลางแบบสมบูรณ์ */
 .login-btn {
-    background: linear-gradient(95deg, #2563eb, #1e40af);
+    background: linear-gradient(95deg, #2d7a2d, #1a5a1a);
     padding: 14px;
     font-size: 1rem;
     gap: 8px;
@@ -528,27 +631,11 @@ button.danger {
     margin-top: 8px;
 }
 
-/* ✅ เพิ่ม container สำหรับฟอร์มให้เนื้อหาทั้งหมดอยู่กึ่งกลาง */
 .login-box form {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
-
-.login-hint {
-    background: #fffbeb;
-    border-left: 5px solid #f59e0b;
-    border-radius: 24px;
-}
-.hint-grid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px 20px;
-}
-
-/* ============================================================== */
-/* ปรับปรุงช่องกรอก Login ให้สมดุลกับปุ่ม                             */
-/* ============================================================== */
 
 .input-group {
     margin-bottom: 20px;
@@ -558,7 +645,7 @@ button.danger {
 .input-group label {
     display: block;
     font-size: 0.9rem;
-    color: #475569;
+    color: #2d6a3a;
     font-weight: 600;
     margin-bottom: 8px;
     margin-left: 5px;
@@ -569,29 +656,27 @@ button.danger {
     width: 100%;
 }
 
-/* ปรับแต่งช่อง input ให้มีความสูงเท่ากับปุ่ม และดูทันสมัย */
 input[type="text"],
 input[type="password"] {
     width: 100%;
-    padding: 14px 20px 14px 45px; /* เว้นที่ให้ไอคอนด้านซ้าย */
-    border: 2px solid #e2e8f0;
-    border-radius: 20px; /* ขอบมนเข้ากับสไตล์ปุ่ม */
+    padding: 14px 20px 14px 45px;
+    border: 2px solid #a5d6a7;
+    border-radius: 20px;
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #f8fafc;
+    background: #f1f8e9;
     box-sizing: border-box;
+    color: #1a3a2a;
 }
 
-/* เอฟเฟกต์เมื่อคลิกที่ช่องกรอก */
 input[type="text"]:focus,
 input[type="password"]:focus {
-    border-color: #2563eb;
+    border-color: #2d7a2d;
     background: #fff;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 4px rgba(45, 122, 45, 0.1);
 }
 
-/* จัดตำแหน่งไอคอนให้อยู่ตรงกลางช่องกรอก */
 .input-wrapper .icon, .password-wrapper .icon {
     position: absolute;
     left: 15px;
@@ -601,7 +686,6 @@ input[type="password"]:focus {
     pointer-events: none;
 }
 
-/* ปรับปุ่มแสดง/ซ่อนรหัสผ่านให้คลิกง่ายขึ้น */
 .toggle-password {
     position: absolute;
     right: 15px;
@@ -618,7 +702,6 @@ input[type="password"]:focus {
 
 .toggle-password:hover { opacity: 1; }
 
-/* ✅ ปรับแต่ง checkbox ให้อยู่กึ่งกลางกับ layout */
 .remember-group {
     margin: 10px 0 15px 0;
     display: flex;
@@ -631,12 +714,10 @@ input[type="password"]:focus {
     gap: 8px;
     cursor: pointer;
     font-size: 0.85rem;
-    color: #334155;
+    color: #1a3a2a;
 }
 
-/* ==========================================
-   📱 Responsive (Mobile Fine-Tune)
-   ========================================== */
+/* ========== 11. RESPONSIVE DESIGN ========== */
 @media (max-width: 640px) {
     body {
         padding: 12px;
@@ -654,7 +735,15 @@ input[type="password"]:focus {
         margin-bottom: 16px;
         justify-content: space-between;
         width: 100%;
-        background: rgba(0,0,0,0.6);
+        background: rgba(45, 122, 45, 0.92);
+        border-radius: 40px;
+    }
+    .user-info-left {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .online-users-compact {
+        padding: 4px 10px;
     }
     .controls button {
         flex: 1;
@@ -670,52 +759,39 @@ input[type="password"]:focus {
     .input-row input, .input-row select {
         width: 100%;
     }
-    .user-table th, .user-table td {
-        padding: 8px;
-        display: block;
-        text-align: right;
-        position: relative;
-    }
-    .user-table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 8px;
-        font-weight: bold;
+    .compact-users-list {
+        right: auto;
+        left: 0;
+        min-width: 200px;
     }
 }
 
-/* ==========================================
-   ✨ Animations & Extra Polish
-   ========================================== */
+/* ========== 12. SCROLLBAR STYLES ========== */
 ::-webkit-scrollbar {
     width: 8px;
-    background: #e2e8f0;
+    height: 8px;
+    background: #c8e6c9;
 }
 ::-webkit-scrollbar-thumb {
-    background: #3b82f6;
+    background: #4CAF50;
     border-radius: 12px;
 }
+::-webkit-scrollbar-thumb:hover {
+    background: #2d7a2d;
+}
 
+/* ========== 13. TABLE OVERRIDES ========== */
 .role-hidden {
     display: none !important;
 }
 
-/* ปรับปุ่มในตาราง */
-.user-table td button {
-    padding: 4px 12px;
-    font-size: 0.7rem;
-    margin: 2px;
-}
-/* ==========================================
-   👥 User Manager Responsive Table (เพิ่มจากไฟล์ 17)
-   ========================================== */
-
-.user-table-wrapper {
+.user-table-wrapper,
+.device-table-wrapper {
     width: 100%;
     overflow-x: auto;
     overflow-y: auto;
     max-height: 55vh;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #a5d6a7;
     border-radius: 16px;
     background: white;
     -webkit-overflow-scrolling: touch;
@@ -723,7 +799,7 @@ input[type="password"]:focus {
 
 .user-table {
     width: 100%;
-    min-width: 700px;
+    min-width: 650px;
     border-collapse: collapse;
 }
 
@@ -731,56 +807,273 @@ input[type="password"]:focus {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #eef2ff;
+    background: #1a5a1a;
 }
 
-/* Mobile Layout */
-@media (max-width: 768px) {
-    .user-table {
-        min-width: 650px;
-    }
-
-    .user-table th,
-    .user-table td {
-        white-space: nowrap;
-    }
-
-    .btn-small {
-        display: block;
-        width: 100%;
-        margin-bottom: 6px;
-    }
-
-    .user-table td:last-child {
-        min-width: 180px;
-    }
+.user-table th,
+.user-table td {
+    padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+    text-align: left;
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+    border-bottom: 1px solid #c8e6c9;
+    white-space: nowrap;
 }
 
-/* ปรับปรุง responsive สำหรับ modal */
-@media (max-width: 640px) {
-    .user-table th,
-    .user-table td {
-        padding: 8px;
-    }
-    
-    .user-table td {
-        display: block;
-        text-align: right;
-        position: relative;
-        padding-left: 50%;
-    }
-    
-    .user-table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 8px;
-        width: 45%;
-        text-align: left;
-        font-weight: bold;
-        white-space: normal;
-    }
-    
-    .user-table td:last-child {
-        min-width: auto;
-    }
+.user-table th {
+    background: #1a5a1a;
+    color: #a5d6a7;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
+
+.user-table td {
+    color: #1a3a2a;
+    font-weight: 600;
+}
+
+.user-table tbody tr:nth-child(even) {
+    background-color: #e8f5e9;
+}
+
+.user-table tbody tr:nth-child(even) td,
+.user-table tbody tr:nth-child(even) td strong {
+    color: #1a3a2a !important;
+}
+
+.user-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Device Table */
+.device-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+}
+
+.device-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #1a5a1a;
+}
+
+.device-table th {
+    background: #1a5a1a;
+    color: #a5d6a7 !important;
+    padding: 16px 15px !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.device-table td {
+    color: #1a3a2a !important;
+    padding: 14px 15px !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-bottom: 1px solid #c8e6c9;
+    vertical-align: middle;
+    background-color: inherit;
+    white-space: nowrap;
+}
+
+.device-table tbody tr:nth-child(even) {
+    background-color: #e8f5e9;
+}
+
+.device-table tbody tr:nth-child(even) td,
+.device-table tbody tr:nth-child(even) td strong,
+.device-table tbody tr:nth-child(even) td span {
+    color: #1a3a2a !important;
+}
+
+.device-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.device-table tbody tr:hover {
+    background-color: #c8e6c9;
+    transition: background-color 0.2s ease;
+}
+
+.device-table .btn-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    margin: 2px 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.device-table .edit-btn {
+    background: #ffa726;
+    color: white;
+}
+
+.device-table .edit-btn:hover {
+    background: #f57c00;
+    transform: translateY(-1px);
+}
+
+.device-table .danger {
+    background: #dc2626;
+    color: white;
+}
+
+.device-table .danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.device-table .level-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.device-table .level-badge.bank {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.device-table .level-badge.bottom {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+.device-table .level-badge.warning {
+    background: #fce4ec;
+    color: #b71c1c;
+}
+
+/* ========== 14. ALERT BADGE & FLOOD STATUS ========== */
+
+.flood-status-critical {
+    background: #c62828;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    animation: blinkRed 1s infinite;
+}
+
+@keyframes blinkRed {
+    0% { opacity: 1; background: #c62828; }
+    50% { opacity: 0.7; background: #b71c1c; }
+    100% { opacity: 1; background: #c62828; }
+}
+
+.flood-status-warning {
+    background: #f57c00;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: bold;
+}
+
+.flood-status-normal {
+    background: #2d7a2d;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: bold;
+}
+
+.water-level-icon {
+    font-size: 1.2rem;
+    display: inline-block;
+    transition: all 0.3s;
+}
+
+.water-level-icon.flood {
+    animation: waterWave 1.5s infinite;
+}
+
+@keyframes waterWave {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+
+/* ========== 15. DEVICE LEVEL INPUT STYLES ========== */
+
+.input-row .level-input {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.input-row .level-input.bank-input {
+    border-left-color: #f57c00;
+}
+
+.input-row .level-input.bottom-input {
+    border-left-color: #1976d2;
+}
+
+.input-row .level-input.warning-input {
+    border-left-color: #c62828;
+}
+
+.input-row .level-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.level-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #2d6a3a;
+    display: block;
+    margin-bottom: 2px;
+    margin-left: 4px;
+}
+
+.level-label.bank-label { color: #e65100; }
+.level-label.bottom-label { color: #0d47a1; }
+.level-label.warning-label { color: #b71c1c; }
+
+.sensor-levels {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: #1a3a2a;
+    background: #e8f5e9;
+    padding: 6px 12px;
+    border-radius: 12px;
+}
+
+.sensor-levels .level-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sensor-levels .level-item .level-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.sensor-levels .level-item .level-dot.bank-dot { background: #f57c00; }
+.sensor-levels .level-item .level-dot.bottom-dot { background: #1976d2; }
+.sensor-levels .level-item .level-dot.warning-dot { background: #c62828; }
