@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "false", 
+    
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null" 
+    },
+    
+    "device_configs": {
+      ".read": "auth != null",
+      // อนุญาตให้เฉพาะ Admin เท่านั้นที่แก้ไขการตั้งค่าอุปกรณ์ได้
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    
+    "sensors": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    
+    "settings": {
+      ".read": "auth != null",
+      // เฉพาะ Admin ที่แก้การตั้งค่าระบบและ Telegram ได้
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    
+    "online_users": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
