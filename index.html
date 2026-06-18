@@ -207,7 +207,7 @@
         <!-- ปุ่มควบคุมสำหรับแอดมิน                                        -->
         <!-- ========================================================== -->
         <div class="controls" id="adminControls">
-            <button onclick="window.clearLocalData && clearLocalData()" class="danger">🗑️ Clear Local Data</button>
+            <button onclick="window.confirmClearLocalData && confirmClearLocalData()" class="danger">🗑️ Clear Local Data</button>
             <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้</button>
             <button onclick="window.openDeviceManager && openDeviceManager()" style="background-color: #2196F3;">⚙️ จัดการบอร์ดและเซนเซอร์</button>
         </div>
@@ -370,6 +370,11 @@
                         <input type="text" id="devTypeCustom" placeholder="ระบุชนิดเซนเซอร์ของคุณที่นี่ (เช่น Lux, CO2, PM2.5)" style="width:100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0;">
                     </div>
                     
+                    <!-- ========================================================== -->
+                    <!-- 🔹 33.1: Threshold Inputs (ถูกลบแล้ว ใช้ Advanced Alert แทน) -->
+                    <!-- ========================================================== -->
+                    <!-- ส่วนนี้ถูกลบออกไปแล้ว เนื่องจากใช้ Advanced Alert แทน -->
+                    
                     <!-- ระบบตั้งค่าระดับการแจ้งเตือน 5 ระดับ -->
                     <div class="level-config-inline" style="margin-top: 12px; padding: 12px 16px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
@@ -414,6 +419,36 @@
                         </div>
                     </div>
                     
+                    <!-- ========================================================== -->
+                    <!-- 🔹 33.2: Advanced Alert Section                             -->
+                    <!-- ========================================================== -->
+                    <div id="advancedAlertSection" class="advanced-alert-config" style="margin-top: 15px; padding: 12px 16px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
+                        <h4 style="color: #e2e8f0; margin: 0 0 10px 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                            ⚙️ ตั้งค่าการแจ้งเตือนขั้นสูง
+                            <span style="font-size: 0.7rem; color: #94a3b8; font-weight: normal;">(Threshold & Rate of Change)</span>
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="color: #94a3b8; font-size: 0.7rem; display: block; margin-bottom: 2px;">ค่าวิกฤตที่ต้องการแจ้ง</label>
+                                <input type="number" id="alertThreshold" placeholder="ค่าวิกฤต" step="any"
+                                       style="width:100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="color: #94a3b8; font-size: 0.7rem; display: block; margin-bottom: 2px;">อัตราการเพิ่มที่แจ้ง</label>
+                                <input type="number" id="alertRateChange" placeholder="อัตราการเพิ่ม" step="any"
+                                       style="width:100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="color: #94a3b8; font-size: 0.7rem; display: block; margin-bottom: 2px;">ในเวลา (นาที)</label>
+                                <input type="number" id="alertRateTime" placeholder="นาที" min="1"
+                                       style="width:100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0;">
+                            </div>
+                        </div>
+                        <div style="font-size: 0.6rem; color: #64748b; margin-top: 6px;">
+                            ⚠️ ระบบจะแจ้งเตือนเมื่อค่า ≥ Threshold หรืออัตราการเพิ่ม ≥ RateChange ภายในเวลาที่กำหนด
+                        </div>
+                    </div>
+                    
                     <!-- Checkbox ปิด/เปิดการแจ้งเตือน (Alert Enabled) -->
                     <div class="input-row" style="margin-top: 10px;">
                         <label class="custom-checkbox" style="display: flex; align-items: center; cursor: pointer; color: #e2e8f0;">
@@ -423,7 +458,7 @@
                         
                         <div style="flex:1; display: flex; justify-content: flex-end; gap: 10px;">
                             <button onclick="resetDeviceForm()" class="btn-small" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">↺ รีเซ็ตฟอร์ม</button>
-                            <button onclick="saveDeviceWithLevelConfig()" class="save-btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 8px 24px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold;">
+                            <button onclick="saveDeviceWithThresholds()" class="save-btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 8px 24px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold;">
                                 💾 บันทึก
                             </button>
                         </div>
@@ -434,6 +469,8 @@
                         <br>* ตั้งค่าระดับการแจ้งเตือน 5 ระดับ: มากที่สุด, มาก, ปานกลาง, น้อย, น้อยที่สุด
                         <br>* ระบบจะแจ้งเตือนเมื่อค่าอยู่ในระดับ "มาก" หรือ "มากที่สุด"
                         <br>* Checkbox "เปิดใช้งานการแจ้งเตือน": ถ้ายกเลิกเลือก ระบบจะไม่ส่งการแจ้งเตือนสำหรับอุปกรณ์นี้
+                        <br>* Advanced Alert: ระบบจะแจ้งเตือนตามเงื่อนไขที่กำหนดเพิ่มเติม
+                        <br>* ค่าวิกฤตและอัตราการเปลี่ยนแปลง: ระบบจะแสดงในตารางและใช้เป็นเงื่อนไขแจ้งเตือน
                     </p>
                 </div>
 
@@ -442,27 +479,51 @@
                     <input type="text" id="searchSensor" onkeyup="filterSensorTable()" placeholder="🔍 ค้นหาเซนเซอร์..." style="padding: 8px 16px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; width: 100%; max-width: 300px;">
                 </div>
 
-                <!-- ตารางเซนเซอร์ -->
+                <!-- ========================================================== -->
+                <!-- 🔹 33.3: ตารางเซนเซอร์                                      -->
+                <!-- ========================================================== -->
                 <div class="device-table-wrapper">
                     <table class="device-table" id="sensor-table">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">🆔 ID</th>
-                                <th style="width: 15%;">📛 ชื่อจุดติดตั้ง</th>
-                                <th style="width: 12%;">🔍 ชนิด</th>
-                                <th style="width: 20%;">📊 ระดับการแจ้งเตือน</th>
-                                <th style="width: 20%;">⚡ เกณฑ์แจ้งเตือน</th>
-                                <th style="width: 23%;">⚙️ จัดการ</th>
+                                <th style="width: 8%;">🆔 ID</th>
+                                <th style="width: 13%;">📛 ชื่อจุดติดตั้ง</th>
+                                <th style="width: 10%;">🔍 ชนิด</th>
+                                <th style="width: 8%;">📏 หน่วย</th>
+                                <th style="width: 14%;">📊 ระดับการแจ้งเตือน</th>
+                                <th style="width: 10%;">⚠️ ค่าวิกฤต</th>
+                                <th style="width: 10%;">📈 อัตราเปลี่ยน</th>
+                                <th style="width: 8%;">⏱️ เวลา(นาที)</th>
+                                <th style="width: 19%;">⚙️ จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="deviceTableBody">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 20px; color:#64748b;">
+                                <td colspan="9" style="text-align: center; padding: 20px; color:#64748b;">
                                     📥 กำลังโหลดข้อมูลเซนเซอร์...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                
+                 <!-- ========================================================== -->
+                <!-- 🔹 33.4: ประวัติการแจ้งเตือน (ตามไฟล์ 17)                     -->
+                <!-- ========================================================== -->
+                <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 20px;">
+                    <h4 style="color: #e2e8f0; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        📜 ประวัติการแจ้งเตือนของอุปกรณ์
+                        <span style="font-size: 0.7rem; color: #94a3b8; font-weight: normal;">(คลิกเลือกอุปกรณ์เพื่อดูประวัติ)</span>
+                    </h4>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <select id="alertHistoryDeviceSelect" onchange="loadAlertHistory()" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; min-width: 200px;">
+                            <option value="">-- เลือกอุปกรณ์ --</option>
+                        </select>
+                        <button onclick="loadAlertHistory()" class="btn-small" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">🔄 โหลดประวัติ</button>
+                    </div>
+                    <div id="alertHistoryContainer" style="background: #0f172a; border-radius: 8px; padding: 15px; border: 1px solid #334155; min-height: 100px;">
+                        <div style="text-align:center; padding: 20px; color:#64748b;">📭 เลือกอุปกรณ์เพื่อแสดงประวัติการแจ้งเตือน</div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -551,7 +612,7 @@
                                     <th style="width: 20%;">ผู้ส่ง</th>
                                     <th style="width: 15%;">สถานะ</th>
                                     <th style="width: 25%;">
-                                        <button onclick="clearHistory()" class="danger" style="background:#d32f2f; padding:4px 8px; font-size:0.7rem; border:none; border-radius:4px; color:white; cursor:pointer;">🗑️ ล้างทั้งหมด</button>
+                                        <button onclick="confirmClearHistory()" class="danger" style="background:#d32f2f; padding:4px 8px; font-size:0.7rem; border:none; border-radius:4px; color:white; cursor:pointer;">🗑️ ล้างทั้งหมด</button>
                                     </th>
                                 </tr>
                             </thead>
@@ -587,7 +648,7 @@
     <!-- ============================================================== -->
     <!-- 🟢 เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)                   -->
     <!-- ============================================================== -->
-    <script src="script.js"></script>
+        <script src="script.js"></script>
 
     <!-- ============================================================== -->
     <!-- 🟢 Script สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button)             -->
@@ -599,6 +660,21 @@
                 adminControls.innerHTML += `<button onclick="window.openSettingsManager && openSettingsManager()" style="background-color: #9C27B0;">🛠️ ตั้งค่าระบบ & สำรองข้อมูล</button>`;
             }
         });
+    </script>
+
+    <!-- ============================================================== -->
+    <!-- 🟢 โค้ดที่เพิ่มเข้ามาใหม่ (ป้องกันการคลิกขวา และฟังก์ชันนำทาง)    -->
+    <!-- ============================================================== -->
+    <script>
+        // ป้องกันการคลิกขวา
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // นำทางไปยังหน้าย่อย
+        function navigateTo(url) {
+            window.location.href = url;
+        }
     </script>
 
     <!-- ============================================================== -->

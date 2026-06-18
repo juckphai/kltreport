@@ -499,7 +499,7 @@ async function renderUserTable() {
                     <td data-label="Role"><span class="role-badge ${userData.role === 'admin' ? 'role-admin' : 'role-user'}">${userData.role === 'admin' ? '👑 Admin' : '👤 User'}</span></td>
                     <td data-label="Action">
                         <button onclick="editUser('${escapeHtml(username)}', '${escapeHtml(userData.password || '')}', '${userData.role}')" class="btn-small edit-btn" style="background:#ffa726; color:white; margin-right:8px;">✏️ แก้ไข</button>
-                        <button onclick="deleteUser('${escapeHtml(username)}')" class="btn-small danger">🗑️ ลบ</button>
+                        <button onclick="confirmDeleteUser('${escapeHtml(username)}')" class="btn-small danger">🗑️ ลบ</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -525,9 +525,9 @@ function escapeHtml(str) {
 //    🔹 8.2 closeDeviceManager - ปิด Device Manager
 //    🔹 8.3 toggleDevice - สลับสถานะการทำงานของอุปกรณ์
 //    🔹 8.4 deleteDevice - ลบอุปกรณ์
-//    🔹 8.5 resetDeviceForm - รีเซ็ตฟอร์ม
+//    🔹 8.5 resetDeviceForm - รีเซ็ตฟอร์ม (ปรับปรุง: ใช้ Advanced Alert เพียงอย่างเดียว)
 //    🔹 8.6 handleEditClick - จัดการคลิกปุ่มแก้ไข
-//    🔹 8.7 renderDeviceTable - แสดงตารางอุปกรณ์ (ปรับปรุงตามไฟล์ 17)
+//    🔹 8.7 renderDeviceTable - แสดงตารางอุปกรณ์ (ปรับปรุง: ใช้ Advanced Alert)
 //    🔹 8.8 renderLevelConfigInline - แสดง UI ระดับในฟอร์ม
 //    🔹 8.9 toggleLevelMode - สลับโหมดการตั้งค่าระดับ
 //    🔹 8.10 applyBoundaryToLevels - นำค่าขีดจำกัดมาใช้กับระดับ
@@ -535,6 +535,7 @@ function escapeHtml(str) {
 //    🔹 8.12 getLevelConfigFromForm - อ่านค่าระดับจากฟอร์ม
 //    🔹 8.13 saveDeviceWithLevelConfig - บันทึกอุปกรณ์พร้อมระดับ
 //    🔹 8.14 loadDeviceForEditWithLevelConfig - โหลดข้อมูลแก้ไข
+//    🔹 8.15 loadAdvancedAlertConfig - โหลดการตั้งค่า Advanced Alert
 // ==========================================
 
 // 🔹 8.1: openDeviceManager
@@ -590,7 +591,7 @@ window.deleteDevice = async function(id) {
     }
 };
 
-// 🔹 8.5: resetDeviceForm
+// 🔹 8.5: resetDeviceForm - รีเซ็ตฟอร์ม (ใช้ Advanced Alert เพียงอย่างเดียว)
 function resetDeviceForm() {
     document.getElementById('devId').value = '';
     document.getElementById('devId').readOnly = false;
@@ -601,12 +602,21 @@ function resetDeviceForm() {
     const alertCheckbox = document.getElementById('devAlertEnabled');
     if (alertCheckbox) alertCheckbox.checked = true;
     
+    // 🔹 รีเซ็ต Advanced Alert
+    const thresholdInput = document.getElementById('alertThreshold');
+    const rateChangeInput = document.getElementById('alertRateChange');
+    const rateTimeInput = document.getElementById('alertRateTime');
+    
+    if (thresholdInput) thresholdInput.value = '';
+    if (rateChangeInput) rateChangeInput.value = '';
+    if (rateTimeInput) rateTimeInput.value = '';
+    
     renderLevelConfigInline(null);
     
     const saveBtn = document.querySelector('#deviceModal .save-btn');
     if (saveBtn) {
         saveBtn.textContent = '💾 บันทึก';
-        saveBtn.setAttribute('onclick', 'saveDeviceWithLevelConfig()');
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds()');
     }
     
     const modeSelect = document.getElementById('levelModeSelect');
@@ -632,15 +642,32 @@ window.handleEditClick = function(id) {
     );
 };
 
-// 🔹 8.7: renderDeviceTable (ปรับปรุงตามไฟล์ 17 - เพิ่มคอลัมน์หน่วยวัด)
+// 🔹 8.7: renderDeviceTable - แสดงตารางอุปกรณ์ (ใช้ Advanced Alert)
 function renderDeviceTable() {
     const tbody = document.getElementById('deviceTableBody');
     if (!tbody) return;
     
+    const thead = document.querySelector('#deviceTable thead');
+    if (thead) {
+        thead.innerHTML = `
+            <tr>
+                <th style="width: 8%;">🆔 ID</th>
+                <th style="width: 13%;">📛 ชื่อจุดติดตั้ง</th>
+                <th style="width: 10%;">🔍 ชนิด</th>
+                <th style="width: 8%;">📏 หน่วย</th>
+                <th style="width: 14%;">📊 ระดับการแจ้งเตือน</th>
+                <th style="width: 10%;">⚠️ ค่าวิกฤต</th>
+                <th style="width: 10%;">📈 อัตราเปลี่ยน</th>
+                <th style="width: 8%;">⏱️ เวลา(นาที)</th>
+                <th style="width: 19%;">⚙️ จัดการ</th>
+            </tr>
+        `;
+    }
+    
     const sensors = Object.entries(deviceConfigs).filter(([id, config]) => config.type !== 'board');
     
     if (sensors.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color:#64748b;">📭 ยังไม่มีข้อมูลเซนเซอร์ กรุณาเพิ่มเซนเซอร์ด้านบน</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color:#64748b;">📭 ยังไม่มีข้อมูลเซนเซอร์ กรุณาเพิ่มเซนเซอร์ด้านบน</td></tr>';
         return;
     }
 
@@ -648,7 +675,6 @@ function renderDeviceTable() {
     for (const [id, config] of sensors) {
         const tr = document.createElement('tr');
         
-        // 🔹 17.1: ดึงค่าหน่วยวัด (ถ้าไม่มีให้แสดงเป็น -)
         const unitDisplay = config.unit ? escapeHtml(config.unit) : '-';
         
         let typeDisplay = config.type;
@@ -665,42 +691,38 @@ function renderDeviceTable() {
             typeDisplay = `📝 ${config.type}`;
         }
         
-        let levelDisplay = '-';
         const levels = config.levels || null;
-        if (levels) {
-            levelDisplay = LEVEL_KEYS.map(key => {
-                const lv = levels[key];
-                if (lv) {
-                    return `<span class="level-badge-custom level-${key}" style="display:inline-block; padding:1px 6px; border-radius:8px; font-size:0.6rem; font-weight:600; margin:1px; background:${LEVEL_COLORS[key]}; color:white;">${lv.min}-${lv.max}</span>`;
-                }
-                return '';
-            }).filter(Boolean).join(' ');
-        }
+        const levelDisplay = levels ? createLevelBarsHTML(levels) : '<span style="color:#64748b; font-size:0.6rem;">-</span>';
         
-        const alertStatus = config.alertEnabled !== false ? '🟢 เปิด' : '🔴 ปิด';
-        const alertColor = config.alertEnabled !== false ? '#4caf50' : '#d32f2f';
+        // 🔹 ดึงค่าจาก advancedAlert โดยตรง (ใช้ชุดข้อมูลเดียว)
+        const advanced = config.advancedAlert || {};
+        const criticalVal = advanced.threshold !== null && advanced.threshold !== undefined ? advanced.threshold : '-';
+        const rateVal = advanced.rateChange !== null && advanced.rateChange !== undefined ? advanced.rateChange : '-';
+        const timeVal = advanced.rateTime !== null && advanced.rateTime !== undefined ? advanced.rateTime : '-';
         
-        const thresholds = config.thresholds || {};
-        let thresholdDisplay = '-';
-        if (Object.keys(thresholds).length > 0) {
-            thresholdDisplay = Object.entries(thresholds)
-                .map(([label, val]) => `${label}: ${val}`)
-                .join(', ');
-        }
+        const isEnabled = config.enabled !== false;
+        const statusIcon = isEnabled ? '✅' : '❌';
+        const statusColor = isEnabled ? '#4caf50' : '#ef4444';
         
-        // 🔹 17.2: ปรับปรุงการแสดงผลตาราง - เพิ่มคอลัมน์หน่วยวัด
         tr.innerHTML = `
-            <td data-label="ID"><strong style="color:#1b5e20; font-family: monospace;">${escapeHtml(id)}</strong></td>
+            <td data-label="ID">
+                <strong style="color:#1b5e20; font-family: monospace;">${escapeHtml(id)}</strong>
+                <span style="font-size: 0.7rem; color: ${statusColor}; margin-left: 4px;">${statusIcon}</span>
+            </td>
             <td data-label="ชื่อจุดติดตั้ง"><strong>📛 ${escapeHtml(config.name)}</strong></td>
             <td data-label="ชนิดเซนเซอร์">${typeDisplay}</td>
             <td data-label="หน่วยวัด" style="text-align: center;"><strong>${unitDisplay}</strong></td>
             <td data-label="ระดับการแจ้งเตือน" style="font-size:0.7rem;">${levelDisplay}</td>
-            <td data-label="เกณฑ์แจ้งเตือน"><span style="background: #e8f5e9; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; color:#1b5e20;">${thresholdDisplay}</span></td>
+            <td data-label="ค่าวิกฤต" style="text-align: center; font-weight: bold; color: #ef4444;">${criticalVal}</td>
+            <td data-label="อัตราเปลี่ยน" style="text-align: center; font-weight: bold; color: #f59e0b;">${rateVal}</td>
+            <td data-label="เวลา(นาที)" style="text-align: center; font-weight: bold; color: #3b82f6;">${timeVal}</td>
             <td data-label="จัดการ">
                 <button class="btn-small edit-btn" 
-                        style="background:#ffa726; margin-right:8px;"
-                        onclick="handleEditClick('${id}')">✏️ แก้ไข</button>
-                <button onclick="deleteDevice('${escapeHtml(id)}')" class="btn-small danger">🗑️ ลบ</button>
+                        style="background:#ffa726; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px;"
+                        onclick="handleEditClickWithThresholds('${id}')">✏️ แก้ไข</button>
+                <button onclick="confirmDeleteDevice('${escapeHtml(id)}')" 
+                        class="btn-small danger" 
+                        style="background:#d32f2f; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">🗑️ ลบ</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -869,7 +891,7 @@ function getLevelConfigFromForm() {
     return levels;
 }
 
-// 🔹 8.13: saveDeviceWithLevelConfig
+// 🔹 8.13: saveDeviceWithLevelConfig - บันทึกอุปกรณ์พร้อมระดับ
 window.saveDeviceWithLevelConfig = async function(isEdit = false) {
     const id = document.getElementById('devId').value.trim();
     const name = document.getElementById('devName').value.trim();
@@ -892,6 +914,17 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
     const alertEnabledCheckbox = document.getElementById('devAlertEnabled');
     const alertEnabled = alertEnabledCheckbox ? alertEnabledCheckbox.checked : true;
     
+    // 🔹 ดึงค่า Advanced Alert
+    const thresholdInput = document.getElementById('alertThreshold');
+    const rateChangeInput = document.getElementById('alertRateChange');
+    const rateTimeInput = document.getElementById('alertRateTime');
+    
+    const advancedAlert = {
+        threshold: thresholdInput && thresholdInput.value !== "" ? Number(thresholdInput.value) : null,
+        rateChange: rateChangeInput && rateChangeInput.value !== "" ? Number(rateChangeInput.value) : null,
+        rateTime: rateTimeInput && rateTimeInput.value !== "" ? Number(rateTimeInput.value) : null
+    };
+    
     if (!id || !name) return alert("กรุณากรอก ID และ ชื่อจุดติดตั้ง");
     
     if (!isEdit) {
@@ -912,6 +945,7 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
             type: type,
             unit: unit,
             levels: levels,
+            advancedAlert: advancedAlert,
             alertEnabled: alertEnabled,
             updatedAt: new Date().toISOString()
         };
@@ -929,10 +963,9 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
             deviceConfigs[id] = { ...deviceConfigs[id], ...updateData };
         }
         
-        alert(`✅ ${isEdit ? 'อัปเดต' : 'เพิ่ม'}อุปกรณ์ ${id} สำเร็จ [แจ้งเตือน: ${alertEnabled ? 'เปิด' : 'ปิด'}]`);
+        const actionText = isEdit ? 'อัปเดต' : 'เพิ่ม';
+        alert(`✅ ${actionText}อุปกรณ์ ${id} สำเร็จ [แจ้งเตือน: ${alertEnabled ? 'เปิด' : 'ปิด'}]`);
         
-        // 🔹 แก้ไข: ไม่ปิดหน้าต่างอัตโนมัติ แต่อัปเดตข้อมูลและคงหน้าต่างไว้
-        // closeDeviceManager(); // ❌ เอาออก
         renderDeviceTable();
         renderBoardTable();
         renderSensorCards();
@@ -940,12 +973,9 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
         updateStandaloneAlertPanel();
         renderSummaryTable();
         
-        // 🔹 รีเซ็ตฟอร์มให้พร้อมสำหรับการเพิ่มอุปกรณ์ใหม่ (กรณีเพิ่ม)
         if (!isEdit) {
             resetDeviceForm();
         } else {
-            // กรณีแก้ไข: โหลดข้อมูลเดิมกลับมา (เพื่อให้เห็นว่าอัปเดตแล้ว)
-            // แต่ให้ฟอร์มอยู่ในสถานะแก้ไขต่อไป
             const config = deviceConfigs[id];
             if (config) {
                 loadDeviceForEditWithLevelConfig(
@@ -959,14 +989,14 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
             }
         }
         
-        // 🔹 แสดงข้อความแจ้งให้ทราบว่าสามารถทำงานต่อได้
-        console.log(`✅ ${isEdit ? 'อัปเดต' : 'เพิ่ม'}อุปกรณ์ ${id} สำเร็จ หน้าต่างยังคงเปิดอยู่เพื่อทำงานต่อ`);
+        console.log(`✅ ${actionText}อุปกรณ์ ${id} สำเร็จ`);
         
     } catch (error) {
         alert("❌ ไม่สามารถบันทึกอุปกรณ์ได้: " + error.message);
     }
 };
-// 🔹 8.14: loadDeviceForEditWithLevelConfig
+
+// 🔹 8.14: loadDeviceForEditWithLevelConfig - โหลดข้อมูลแก้ไข
 window.loadDeviceForEditWithLevelConfig = function(id, name, type, unit, levels, alertEnabled) {
     document.getElementById('devId').value = id;
     document.getElementById('devId').readOnly = true;
@@ -1003,13 +1033,18 @@ window.loadDeviceForEditWithLevelConfig = function(id, name, type, unit, levels,
     if (modeSelect) modeSelect.value = 'manual';
     toggleLevelMode();
     
+    // 🔹 โหลด Advanced Alert
+    const config = deviceConfigs[id];
+    if (config) {
+        loadAdvancedAlertConfig(config);
+    }
+    
     const saveBtn = document.querySelector('#deviceModal .save-btn');
     if (saveBtn) {
         saveBtn.textContent = '💾 อัปเดตข้อมูล';
-        saveBtn.setAttribute('onclick', 'saveDeviceWithLevelConfig(true)');
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds(true)');
     }
     
-    // 🔹 แก้ไข: เปิด modal (ถ้ายังไม่เปิด) แต่ไม่ปิดอัตโนมัติ
     const modal = document.getElementById('deviceModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -1018,6 +1053,30 @@ window.loadDeviceForEditWithLevelConfig = function(id, name, type, unit, levels,
     renderDeviceTable();
     renderBoardTable();
 };
+
+// 🔹 8.15: loadAdvancedAlertConfig - โหลดการตั้งค่า Advanced Alert
+window.loadAdvancedAlertConfig = function(config) {
+    const thresholdInput = document.getElementById('alertThreshold');
+    const rateChangeInput = document.getElementById('alertRateChange');
+    const rateTimeInput = document.getElementById('alertRateTime');
+    
+    if (!thresholdInput || !rateChangeInput || !rateTimeInput) {
+        console.warn("⚠️ ไม่พบฟิลด์ Advanced Alert ในหน้า UI");
+        return;
+    }
+    
+    if (config && config.advancedAlert) {
+        const alert = config.advancedAlert;
+        thresholdInput.value = alert.threshold !== null && alert.threshold !== undefined ? alert.threshold : '';
+        rateChangeInput.value = alert.rateChange !== null && alert.rateChange !== undefined ? alert.rateChange : '';
+        rateTimeInput.value = alert.rateTime !== null && alert.rateTime !== undefined ? alert.rateTime : '';
+    } else {
+        thresholdInput.value = '';
+        rateChangeInput.value = '';
+        rateTimeInput.value = '';
+    }
+};
+
 // ==========================================
 // 🔌 หัวข้อหลักที่ 9: ระบบ Provisioning ติดตั้งบอร์ดผ่าน USB
 //    🔹 9.1 startProvisioningProcess - เริ่มกระบวนการติดตั้ง
@@ -1082,39 +1141,46 @@ function renderSensorCards() {
     container.innerHTML = ''; 
     let hasEnabledDevice = false;
     for (const [id, config] of Object.entries(deviceConfigs)) {
-        if (!config.enabled) continue;
         if (config.type === 'board') continue;
         hasEnabledDevice = true;
-        const val = currentSensorValues[id] !== undefined ? currentSensorValues[id] : '--';
+        
+        // 🔹 ตรวจสอบสถานะการเปิดใช้งาน
+        const isEnabled = config.enabled !== false;
+        const displayValue = isEnabled ? (currentSensorValues[id] ?? '--') : "ปิดอยู่";
+        const cardClass = isEnabled ? "sensor-card" : "sensor-card disabled-card";
+        
         const timeStr = new Date().toLocaleTimeString();
         const iconMap = { ultrasonic: '📡', soil: '🌱', rain: '🌧️', ph: '🧪', temp: '🌡️' };
         const icon = iconMap[config.type] || '🔍';
         
         const alertStatus = floodAlertStatus[id] || 'normal';
         let alertBadge = '';
-        if (config.type === 'ultrasonic' && alertStatus === 'flood') {
+        if (isEnabled && config.type === 'ultrasonic' && alertStatus === 'flood') {
             alertBadge = `<div class="alert-badge flood" style="background: #d32f2f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; text-align: center; animation: alertPulse 1.5s infinite;">⚠️ น้ำล้นตลิ่ง!</div>`;
-        } else if (config.type === 'ultrasonic' && alertStatus === 'warning') {
+        } else if (isEnabled && config.type === 'ultrasonic' && alertStatus === 'warning') {
             alertBadge = `<div class="alert-badge warning" style="background: #f57c00; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; text-align: center;">⚠️ ระดับน้ำใกล้ตลิ่ง</div>`;
         }
         
+        const valueDisplay = isEnabled ? 
+            `<span id="val_${id}">${displayValue}</span>` : 
+            `<span style="color: #94a3b8; font-weight: 400;">${displayValue}</span>`;
+        
         const cardHTML = `
-            <div class="sensor-card" id="card_${id}">
+            <div class="${cardClass}" id="card_${id}">
                 <div class="sensor-title">${icon} ${escapeHtml(config.name)}</div>
                 <div class="sensor-value">
-                    <span id="val_${id}">${val}</span>
-                    <span class="sensor-unit">${escapeHtml(config.unit)}</span>
+                    ${valueDisplay}
+                    <span class="sensor-unit">${isEnabled ? escapeHtml(config.unit) : ''}</span>
                 </div>
                 <div id="levelBadge_${id}" class="sensor-level-badge-container"></div>
                 ${alertBadge}
-                <div class="timestamp" id="time_${id}">อัปเดต: ${val !== '--' ? timeStr : 'รอข้อมูล...'}</div>
+                <div class="timestamp" id="time_${id}">${isEnabled ? `อัปเดต: ${displayValue !== '--' ? timeStr : 'รอข้อมูล...'}` : '⏸️ อุปกรณ์ปิดอยู่'}</div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', cardHTML);
         
-        // อัปเดตระดับใน Card
-        if (val !== '--' && !isNaN(val)) {
-            updateSensorCardLevel(id, parseFloat(val));
+        if (isEnabled && displayValue !== '--' && displayValue !== 'ปิดอยู่' && !isNaN(displayValue)) {
+            updateSensorCardLevel(id, parseFloat(displayValue));
         }
     }
     if (!hasEnabledDevice) container.innerHTML = '<div style="width:100%; text-align:center; color:#fff; grid-column: 1 / -1;">ไม่มีเซนเซอร์ที่เปิดใช้งาน กรุณาตั้งค่าใน "จัดการเซนเซอร์"</div>';
@@ -1250,6 +1316,7 @@ function initFirebaseListeners() {
             renderDeviceTable();
             renderBoardTable();
         }
+        updateAlertHistoryDropdown();
     });
     const currentRef = window.ref(window.db, 'sensors/current');
     window.onValue(currentRef, (snapshot) => {
@@ -1302,7 +1369,7 @@ function renderBoardTable() {
                                border-radius:20px; cursor:pointer; margin-right:5px;">
                     ${config.enabled ? '⏸️ ปิด' : '▶️ เปิด'}
                 </button>
-                <button onclick="deleteDevice('${escapeHtml(id)}')" 
+                <button onclick="confirmDeleteDevice('${escapeHtml(id)}')" 
                         class="danger" style="background:#d32f2f; color:white; 
                         border:none; padding:6px 14px; border-radius:20px; cursor:pointer;">
                     🗑️ ลบ
@@ -1588,8 +1655,9 @@ async function renderHistoryTable() {
     if (snap.exists()) {
         const history = Object.entries(snap.val()).reverse();
         history.forEach(([id, item]) => {
+            const timestampDisplay = formatThaiDate(item.timestamp);
             tbody.innerHTML += `<tr>
-                <td>${new Date(item.timestamp).toLocaleTimeString()}</td>
+                <td>${timestampDisplay}</td>
                 <td>${escapeHtml(item.target)}</td>
                 <td>${escapeHtml(item.sender)}</td>
                 <td>${item.status === 'success' ? '✅' : '❌'}</td>
@@ -1868,6 +1936,7 @@ function startDeviceHealthMonitor() {
             if (!currentUser) return;
             await monitorDeviceHealth();
             await checkLevelAlerts();
+            await checkAllAlertConditionsForAllDevices();
         } catch (error) {
             console.error("❌ deviceHealthMonitor error:", error);
         }
@@ -2010,7 +2079,7 @@ function initCustomTypeFields() {
     
     const saveBtn = document.querySelector('#deviceModal .save-btn');
     if (saveBtn) {
-        saveBtn.setAttribute('onclick', 'saveDeviceWithLevelConfig()');
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds()');
     }
 }
 
@@ -2093,18 +2162,17 @@ function createStandaloneAlertPanelIfNotExists() {
 }
 
 // ==========================================
-// 📋 หัวข้อหลักที่ 18: ตารางสรุปสถานะการแจ้งเตือน (ปรับปรุงตามไฟล์ 17)
+// 📋 หัวข้อหลักที่ 18: ตารางสรุปสถานะการแจ้งเตือน
 //    🔹 18.1 renderSummaryTable - แสดงตารางสรุปสถานะ
 //    🔹 18.2 toggleAlertEnabled - สลับการเปิด/ปิดการแจ้งเตือน
 //    🔹 18.3 toggleSummaryTable - แสดง/ซ่อนตาราง
 // ==========================================
 
-// 🔹 18.1: renderSummaryTable (ปรับปรุงตามไฟล์ 17)
+// 🔹 18.1: renderSummaryTable
 function renderSummaryTable() {
     const tbody = document.getElementById('summaryTableBody');
     if (!tbody) return;
     
-    // 🔹 17.1: กรองเฉพาะเซนเซอร์ (ไม่รวมบอร์ด)
     const sensors = Object.entries(deviceConfigs).filter(([id, config]) => config.type !== 'board');
     
     if (sensors.length === 0) {
@@ -2115,13 +2183,10 @@ function renderSummaryTable() {
     tbody.innerHTML = '';
     
     sensors.forEach(([id, config]) => {
-        // 🔹 17.2: ตรวจสอบสถานะการทำงาน (enabled)
         const isEnabled = config.enabled !== false;
-        // 🔹 17.3: ตรวจสอบสถานะการแจ้งเตือน (alertEnabled)
         const isAlertEnabled = config.alertEnabled !== false;
         const tr = document.createElement('tr');
         
-        // 🔹 17.4: แผนที่ชนิดเซนเซอร์
         const iconMap = { ultrasonic: '📡', soil: '🌱', rain: '🌧️', ph: '🧪', temp: '🌡️' };
         const icon = iconMap[config.type] || '🔍';
         
@@ -2134,7 +2199,6 @@ function renderSummaryTable() {
         };
         const typeDisplay = typeMap[config.type] || config.type;
         
-        // 🔹 17.5: แสดงผลแบบเต็มตามไฟล์ 17
         tr.innerHTML = `
             <td style="padding: 12px; border-bottom: 1px solid #334155; color: #e2e8f0; font-weight: 500;">
                 ${icon} ${escapeHtml(config.name)}
@@ -2153,15 +2217,15 @@ function renderSummaryTable() {
                 </span>
             </td>
             <td style="padding: 12px; border-bottom: 1px solid #334155; text-align: center; display: flex; gap: 5px; justify-content: center;">
-<button class="toggle-alert-btn ${isEnabled ? 'active' : ''}" 
-        style="background: ${isEnabled ? '#4caf50' : '#64748b'}"
-        onclick="toggleDevice('${id}', ${isEnabled})">
-    ${isEnabled ? '⏸️ ปิดอุปกรณ์' : '▶️ เริ่มทำงาน'}
-</button>
-<button class="toggle-alert-btn ${isAlertEnabled ? 'active' : ''}"
-        onclick="toggleAlertEnabled('${id}')">
-    ${isAlertEnabled ? '🔔 ปิดแจ้งเตือน' : '🔕 เปิดแจ้งเตือน'}
-</button>
+                <button class="toggle-alert-btn ${isEnabled ? 'active' : ''}" 
+                        style="background: ${isEnabled ? '#4caf50' : '#64748b'}"
+                        onclick="toggleDevice('${id}', ${isEnabled})">
+                    ${isEnabled ? '⏸️ ปิดอุปกรณ์' : '▶️ เริ่มทำงาน'}
+                </button>
+                <button class="toggle-alert-btn ${isAlertEnabled ? 'active' : ''}"
+                        onclick="toggleAlertEnabled('${id}')">
+                    ${isAlertEnabled ? '🔔 ปิดแจ้งเตือน' : '🔕 เปิดแจ้งเตือน'}
+                </button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -2233,8 +2297,7 @@ window.toggleSummaryTable = function() {
 
 // ==========================================
 // 🟢 หัวข้อหลักที่ 19: ระบบตรวจสอบระดับ (Level Alert)
-//    🔹 19.1 evaluateLevelWithCustom - ประเมินค่าระดับ
-//    🔹 19.2 updateSensorCardLevel - อัปเดตระดับใน Card
+//    🔹 19.1 evaluateLevelWithCustom - ประเมินค่าระดับ//    🔹 19.2 updateSensorCardLevel - อัปเดตระดับใน Card
 //    🔹 19.3 checkLevelAlert - ตรวจสอบและแจ้งเตือนระดับ
 //    🔹 19.4 checkLevelAlerts - ตรวจสอบระดับทั้งหมด
 // ==========================================
@@ -2372,172 +2435,472 @@ async function checkLevelAlerts() {
 }
 
 // ==========================================
-// 🚀 หัวข้อหลักที่ 20: DOMContentLoaded - จุดเริ่มต้นหลัก
+// 📋 หัวข้อหลักที่ 20: ระบบ Anti-Spam และการแจ้งเตือนขั้นสูง
+//    🔹 20.1 alertLock - ตัวแปรล็อกการแจ้งเตือน
+//    🔹 20.2 getHistoryFromFirebase - ดึงประวัติจาก Firebase
+//    🔹 20.3 analyzeSensorLogic - ตรรกะแจ้งเตือนหลัก (ใช้ Advanced Alert)
+//    🔹 20.4 sendTelegramAlert - ส่งข้อความ Telegram พร้อม Anti-Spam
 // ==========================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 กำลังเริ่มต้นระบบ...");
-    
-    // 1. เริ่มต้นการเชื่อมต่อ Firebase
-    if (window.db) {
-        initFirebaseListeners();
+// 🔹 20.1: alertLock - ตัวแปรล็อกการแจ้งเตือน (Anti-Spam)
+const alertLock = {};
+
+// 🔹 20.2: getHistoryFromFirebase - ดึงประวัติจาก Firebase
+async function getHistoryFromFirebase(id, minutes) {
+    if (!window.db) {
+        console.warn("⚠️ getHistoryFromFirebase: Firebase not ready");
+        return [];
     }
     
-    // 2. เริ่มต้นการตั้งค่าการบันทึกอัตโนมัติ
-    const checkDbInterval = setInterval(() => {
-        if (window.db) {
-            clearInterval(checkDbInterval);
-            const settingsRef = window.ref(window.db, 'settings/log_interval');
-            window.onValue(settingsRef, (snapshot) => {
-                if (snapshot.exists()) startAutoLogging(snapshot.val());
-                else startAutoLogging(15);
-            });
-        }
-    }, 500);
+    const now = Date.now();
+    const startTime = now - (minutes * 60 * 1000);
+    const historyRef = window.ref(window.db, 'sensor_history');
     
-    // 3. ตรวจสอบการ login อัตโนมัติ
-    function checkAutoLogin() {
-        const rememberMe = localStorage.getItem('rememberMe') === 'true';
-        if (rememberMe) {
-            const savedUsername = localStorage.getItem('savedUsername');
-            const savedPassword = localStorage.getItem('savedPassword');
-            if (savedUsername && savedPassword) {
-                document.getElementById('username').value = savedUsername;
-                document.getElementById('password').value = savedPassword;
-                document.getElementById('rememberMe').checked = true;
-                handleLogin();
+    try {
+        const snapshot = await window.get(
+            window.query(
+                historyRef, 
+                window.orderByKey(), 
+                window.startAt(new Date(startTime).toISOString())
+            )
+        );
+        
+        if (!snapshot.exists()) return [];
+        
+        let history = [];
+        snapshot.forEach((child) => {
+            const data = child.val();
+            if (data && data[id] !== undefined) {
+                history.push(data[id]);
             }
-        }
+        });
+        return history;
+    } catch (error) {
+        console.error("❌ getHistoryFromFirebase error:", error);
+        return [];
     }
-    checkAutoLogin();
-    
-    // 4. เริ่มต้น UI สำหรับเลือกรูปแบบรายงาน
-    function initReportTypeSelector() {
-        const reportTypeSelect = document.getElementById('reportTypeSelect');
-        if (!reportTypeSelect) {
-            const userActions = document.getElementById('userActions');
-            if (userActions) {
-                const selectHtml = `
-                    <select id="reportTypeSelect" style="padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #1e293b; color: #e2e8f0; border: 1px solid #475569;">
-                        <option value="status">📊 รายงานสถานะฮาร์ดแวร์ปัจจุบัน</option>
-                        <option value="system">⚙️ รายงานสภาพการทำงานของระบบ</option>
-                    </select>
-                    <br>
-                `;
-                userActions.insertAdjacentHTML('afterbegin', selectHtml);
-            }
-        }
-    }
-    initReportTypeSelector();
-    
-    // 5. แสดงปุ่มส่งรายงาน
-    function showReportButtonForAll() {
-        const userActions = document.getElementById('userActions');
-        if (userActions) {
-            userActions.style.display = 'block';
-        }
-    }
-    showReportButtonForAll();
-    
-    // 6. เริ่มต้น Chart
-    initChart();
-    
-    // 7. สร้าง Standalone Alert Panel
-    createStandaloneAlertPanelIfNotExists();
-    
-    // 8. เริ่มต้นระบบ Custom Type Fields
-    initCustomTypeFields();
-    
-    // 9. เริ่มต้นระบบ Level Config Inline
-    window.renderLevelConfigInline = renderLevelConfigInline;
-    window.toggleLevelMode = toggleLevelMode;
-    window.applyBoundaryToLevels = applyBoundaryToLevels;
-    window.resetLevelConfigInline = resetLevelConfigInline;
-    window.getLevelConfigFromForm = getLevelConfigFromForm;
-    window.saveDeviceWithLevelConfig = saveDeviceWithLevelConfig;
-    window.loadDeviceForEditWithLevelConfig = loadDeviceForEditWithLevelConfig;
-    window.evaluateLevelWithCustom = evaluateLevelWithCustom;
-    window.updateSensorCardLevel = updateSensorCardLevel;
-    window.checkLevelAlert = checkLevelAlert;
-    window.checkLevelAlerts = checkLevelAlerts;
-    
-    renderLevelConfigInline(null);
-    toggleLevelMode();
-    
-    // 🔹 26.1: เรียกใช้ initializeAllFeatures เพื่อเปิดใช้งานฟังก์ชันตามไฟล์ 17
-    initializeAllFeatures();
-    
-    console.log("✅ ระบบพร้อมทำงาน (เวอร์ชันสมบูรณ์ + ไฟล์ 17)");
-});
-
-
-// ==========================================
-// 📋 หัวข้อหลักที่ 21: ระบบแสดงสถานะอุปกรณ์ปิดอยู่ (ตามไฟล์ 17 ข้อ 1)
-//    🔹 21.1 renderSensorCardsWithDisabledStatus - แสดงการ์ดเซนเซอร์พร้อมสถานะปิดอยู่
-//    🔹 21.2 applyDisabledCardStyles - ใช้ CSS สำหรับการ์ดที่ปิดอยู่
-// ==========================================
-
-// 🔹 21.1: renderSensorCardsWithDisabledStatus
-// แก้ไขฟังก์ชัน renderSensorCards เพื่อแสดงผลชัดเจนเมื่อปิดอุปกรณ์
-function renderSensorCards() {
-    const container = document.getElementById('sensorGridContainer');
-    container.innerHTML = ''; 
-    let hasEnabledDevice = false;
-    for (const [id, config] of Object.entries(deviceConfigs)) {
-        if (config.type === 'board') continue;
-        hasEnabledDevice = true;
-        
-        // 🔹 21.1.1: ตรวจสอบสถานะการเปิดใช้งาน และแสดงผลตามไฟล์ 17 ข้อ 1
-        const isEnabled = config.enabled !== false;
-        const displayValue = isEnabled ? (currentSensorValues[id] ?? '--') : "ปิดอยู่";
-        const cardClass = isEnabled ? "sensor-card" : "sensor-card disabled-card";
-        
-        const timeStr = new Date().toLocaleTimeString();
-        const iconMap = { ultrasonic: '📡', soil: '🌱', rain: '🌧️', ph: '🧪', temp: '🌡️' };
-        const icon = iconMap[config.type] || '🔍';
-        
-        const alertStatus = floodAlertStatus[id] || 'normal';
-        let alertBadge = '';
-        if (isEnabled && config.type === 'ultrasonic' && alertStatus === 'flood') {
-            alertBadge = `<div class="alert-badge flood" style="background: #d32f2f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; text-align: center; animation: alertPulse 1.5s infinite;">⚠️ น้ำล้นตลิ่ง!</div>`;
-        } else if (isEnabled && config.type === 'ultrasonic' && alertStatus === 'warning') {
-            alertBadge = `<div class="alert-badge warning" style="background: #f57c00; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; text-align: center;">⚠️ ระดับน้ำใกล้ตลิ่ง</div>`;
-        }
-        
-        // 🔹 21.1.2: แสดงสถานะปิดอยู่แทนค่าที่อ่านได้
-        const valueDisplay = isEnabled ? 
-            `<span id="val_${id}">${displayValue}</span>` : 
-            `<span style="color: #94a3b8; font-weight: 400;">${displayValue}</span>`;
-        
-        const cardHTML = `
-            <div class="${cardClass}" id="card_${id}">
-                <div class="sensor-title">${icon} ${escapeHtml(config.name)}</div>
-                <div class="sensor-value">
-                    ${valueDisplay}
-                    <span class="sensor-unit">${isEnabled ? escapeHtml(config.unit) : ''}</span>
-                </div>
-                <div id="levelBadge_${id}" class="sensor-level-badge-container"></div>
-                ${alertBadge}
-                <div class="timestamp" id="time_${id}">${isEnabled ? `อัปเดต: ${displayValue !== '--' ? timeStr : 'รอข้อมูล...'}` : '⏸️ อุปกรณ์ปิดอยู่'}</div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', cardHTML);
-        
-        // อัปเดตระดับใน Card เฉพาะเมื่อเปิดใช้งานและมีค่า
-        if (isEnabled && displayValue !== '--' && displayValue !== 'ปิดอยู่' && !isNaN(displayValue)) {
-            updateSensorCardLevel(id, parseFloat(displayValue));
-        }
-    }
-    if (!hasEnabledDevice) container.innerHTML = '<div style="width:100%; text-align:center; color:#fff; grid-column: 1 / -1;">ไม่มีเซนเซอร์ที่เปิดใช้งาน กรุณาตั้งค่าใน "จัดการเซนเซอร์"</div>';
-    
-    renderSummaryTable();
 }
 
-// 🔹 21.2: applyDisabledCardStyles - เพิ่ม CSS สำหรับการ์ดที่ปิดอยู่
+// 🔹 20.3: analyzeSensorLogic - ตรรกะแจ้งเตือนหลัก (ใช้ Advanced Alert)
+async function analyzeSensorLogic(id, rawValue, config) {
+    if (!config || !id || rawValue === undefined || rawValue === null) return;
+    
+    if (config.alertEnabled === false) return;
+    if (!config.enabled) return;
+    if (config.type === 'board') return;
+    if (config.is_acknowledged === true) return;
+    
+    const value = parseFloat(rawValue);
+    if (isNaN(value)) return;
+    
+    // 🔹 ดึงค่าจาก advancedAlert โดยตรง
+    const advanced = config.advancedAlert || {};
+    const threshold = advanced.threshold !== undefined ? advanced.threshold : null;
+    const rateChange = advanced.rateChange !== undefined ? advanced.rateChange : null;
+    const rateTime = advanced.rateTime !== undefined ? advanced.rateTime : 5;
+    
+    // 🔹 ตรวจสอบค่าวิกฤต (Threshold)
+    if (threshold !== null && value >= threshold) {
+        const message = `🚨 วิกฤต: ${config.name} ถึงระดับ ${value.toFixed(2)} ${config.unit || ''} แล้ว (เกณฑ์ ${threshold})`;
+        await sendTelegramAlert(id, config, message);
+        await saveAlertHistory(id, { message: message, type: 'threshold', status: 'sent' });
+    }
+
+    // 🔹 ตรวจสอบอัตราการเพิ่มขึ้น (Rate of Change)
+    if (rateChange !== null && rateTime) {
+        const history = await getHistoryFromFirebase(id, rateTime);
+        if (history.length > 0) {
+            const oldestValue = parseFloat(history[0]);
+            if (!isNaN(oldestValue)) {
+                const delta = value - oldestValue;
+                if (delta >= rateChange) {
+                    const message = `📈 อัตราการเพิ่มสูง: ${config.name} เพิ่มขึ้น ${delta.toFixed(2)} ${config.unit || ''} ใน ${rateTime} นาที (เกณฑ์ ${rateChange})`;
+                    await sendTelegramAlert(id, config, message);
+                    await saveAlertHistory(id, { message: message, type: 'rate_change', status: 'sent' });
+                }
+            }
+        }
+    }
+}
+
+// 🔹 20.4: sendTelegramAlert - ส่งข้อความ Telegram พร้อม Anti-Spam
+async function sendTelegramAlert(sensorId, config, message) {
+    if (!sensorId || !message) return;
+    
+    const now = Date.now();
+    const LOCK_TIME = 10 * 60 * 1000;
+
+    if (alertLock[sensorId] && (now - alertLock[sensorId] < LOCK_TIME)) {
+        console.log(`⏳ Anti-Spam: ${sensorId} ถูกล็อกไว้`);
+        return;
+    }
+    
+    try {
+        const configSnap = await window.get(window.ref(window.db, 'settings/telegram/config'));
+        const token = configSnap.val()?.botToken;
+        
+        if (!token || token.trim() === '') {
+            console.warn("⚠️ ไม่มี Bot Token");
+            return;
+        }
+        
+        const subsSnap = await window.get(window.ref(window.db, 'settings/telegram/subscribers'));
+        
+        if (token && subsSnap.exists()) {
+            const subs = subsSnap.val();
+            let successCount = 0;
+            
+            for (let subId in subs) {
+                const chatId = subs[subId].chatId;
+                if (chatId) {
+                    const success = await sendTelegramTextManual(token, chatId, message);
+                    if (success) successCount++;
+                }
+            }
+            
+            if (successCount > 0) {
+                await window.push(window.ref(window.db, 'settings/telegram/history'), {
+                    timestamp: new Date().toISOString(),
+                    target: `แจ้งเตือน: ${config.name}`,
+                    sender: 'ระบบอัตโนมัติ',
+                    status: 'success'
+                });
+                console.log(`✅ ส่งแจ้งเตือน ${sensorId} สำเร็จ`);
+            }
+            
+            alertLock[sensorId] = now;
+            
+            await window.update(window.ref(window.db, `device_configs/${sensorId}`), {
+                alert_count: (config.alert_count || 0) + 1,
+                last_alert_time: now
+            });
+            
+            updateStandaloneAlertPanel();
+            renderAlertHistoryTable(sensorId);
+        }
+    } catch (error) {
+        console.error("❌ sendTelegramAlert error:", error);
+    }
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 21: ระบบจัดการประวัติการแจ้งเตือนแบบละเอียด
+//    🔹 21.1 getAlertHistory - ดึงประวัติการแจ้งเตือน
+//    🔹 21.2 saveAlertHistory - บันทึกประวัติการแจ้งเตือน
+//    🔹 21.3 renderAlertHistoryTable - แสดงตารางประวัติการแจ้งเตือน
+//    🔹 21.4 updateAlertHistoryDropdown - อัปเดต dropdown เลือกอุปกรณ์
+//    🔹 21.5 loadAlertHistory - โหลดประวัติการแจ้งเตือน
+// ==========================================
+
+// 🔹 21.1: getAlertHistory - ดึงประวัติการแจ้งเตือน
+async function getAlertHistory(deviceId, limit = 50) {
+    if (!window.db) return [];
+    
+    try {
+        const historyRef = window.ref(window.db, `alert_history/${deviceId}`);
+        const snapshot = await window.get(historyRef);
+        
+        if (!snapshot.exists()) return [];
+        
+        const history = [];
+        snapshot.forEach((child) => {
+            const data = child.val();
+            if (data) {
+                history.push({
+                    id: child.key,
+                    ...data
+                });
+            }
+        });
+        
+        history.sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+        
+        return history.slice(0, limit);
+    } catch (error) {
+        console.error("❌ getAlertHistory error:", error);
+        return [];
+    }
+}
+
+// 🔹 21.2: saveAlertHistory - บันทึกประวัติการแจ้งเตือน
+async function saveAlertHistory(deviceId, alertData) {
+    if (!window.db) return false;
+    
+    try {
+        const historyRef = window.ref(window.db, `alert_history/${deviceId}`);
+        await window.push(historyRef, {
+            ...alertData,
+            timestamp: new Date().toISOString()
+        });
+        return true;
+    } catch (error) {
+        console.error("❌ saveAlertHistory error:", error);
+        return false;
+    }
+}
+
+// 🔹 21.3: renderAlertHistoryTable - แสดงตารางประวัติการแจ้งเตือน
+async function renderAlertHistoryTable(deviceId) {
+    const container = document.getElementById('alertHistoryContainer');
+    if (!container) return;
+    
+    if (!deviceId) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">📭 เลือกอุปกรณ์เพื่อแสดงประวัติการแจ้งเตือน</div>';
+        return;
+    }
+    
+    const history = await getAlertHistory(deviceId);
+    
+    if (history.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">📭 ยังไม่มีประวัติการแจ้งเตือนสำหรับอุปกรณ์นี้</div>';
+        return;
+    }
+    
+    let html = `
+        <div class="alert-history-table-wrapper" style="overflow-x:auto; margin-top:10px;">
+            <table class="device-table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">เวลา</th>
+                        <th style="text-align:left;">ข้อความแจ้งเตือน</th>
+                        <th style="text-align:left;">ประเภท</th>
+                        <th style="text-align:center;">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    history.forEach(item => {
+        const timeDisplay = formatThaiDateTime(item.timestamp);
+        const statusDisplay = item.status === 'sent' ? '✅ ส่งแล้ว' : '⚠️ รอดำเนินการ';
+        const statusColor = item.status === 'sent' ? '#4caf50' : '#f59e0b';
+        
+        html += `
+            <tr>
+                <td style="padding:8px 12px; border-bottom:1px solid #334155; color:#94a3b8; font-size:0.8rem;">${timeDisplay}</td>
+                <td style="padding:8px 12px; border-bottom:1px solid #334155; color:#e2e8f0;">${escapeHtml(item.message || 'ไม่ระบุข้อความ')}</td>
+                <td style="padding:8px 12px; border-bottom:1px solid #334155; color:#94a3b8; font-size:0.8rem;">${escapeHtml(item.type || 'ทั่วไป')}</td>
+                <td style="padding:8px 12px; border-bottom:1px solid #334155; text-align:center;">
+                    <span style="color:${statusColor}; font-weight:bold;">${statusDisplay}</span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// 🔹 21.4: updateAlertHistoryDropdown - อัปเดต dropdown เลือกอุปกรณ์
+function updateAlertHistoryDropdown() {
+    const select = document.getElementById('alertHistoryDeviceSelect');
+    if (!select) return;
+    
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
+    
+    const sensors = Object.entries(deviceConfigs).filter(([id, config]) => config.type !== 'board');
+    sensors.forEach(([id, config]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `${config.name || id} (${id})`;
+        select.appendChild(option);
+    });
+    
+    if (currentValue && document.querySelector(`#alertHistoryDeviceSelect option[value="${currentValue}"]`)) {
+        select.value = currentValue;
+    }
+}
+
+// 🔹 21.5: loadAlertHistory - โหลดประวัติการแจ้งเตือน
+window.loadAlertHistory = function() {
+    const select = document.getElementById('alertHistoryDeviceSelect');
+    if (!select) return;
+    
+    const deviceId = select.value;
+    renderAlertHistoryTable(deviceId);
+};
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 22: ระบบส่งแจ้งเตือนแบบรวม (Combined Alert System)
+//    🔹 22.1 sendCombinedAlert - ส่งแจ้งเตือนแบบรวมพร้อมประวัติ
+//    🔹 22.2 checkAllAlertConditions - ตรวจสอบเงื่อนไขทั้งหมด
+//    🔹 22.3 checkAllAlertConditionsForAllDevices - ตรวจสอบทุกอุปกรณ์
+// ==========================================
+
+// 🔹 22.1: sendCombinedAlert - ส่งแจ้งเตือนแบบรวมพร้อมประวัติ
+async function sendCombinedAlert(sensorId, config, message, alertType = 'general') {
+    if (!sensorId || !message) return false;
+    
+    const now = Date.now();
+    const LOCK_TIME = 10 * 60 * 1000;
+
+    if (alertLock[sensorId] && (now - alertLock[sensorId] < LOCK_TIME)) {
+        console.log(`⏳ Anti-Spam: ${sensorId} ถูกล็อกไว้`);
+        return false;
+    }
+    
+    try {
+        const configSnap = await window.get(window.ref(window.db, 'settings/telegram/config'));
+        const token = configSnap.val()?.botToken;
+        
+        if (!token || token.trim() === '') {
+            console.warn("⚠️ ไม่มี Bot Token");
+            return false;
+        }
+        
+        const subsSnap = await window.get(window.ref(window.db, 'settings/telegram/subscribers'));
+        let success = false;
+        
+        if (subsSnap.exists()) {
+            const subs = subsSnap.val();
+            
+            for (let subId in subs) {
+                const chatId = subs[subId].chatId;
+                if (chatId) {
+                    const result = await sendTelegramTextManual(token, chatId, message);
+                    if (result) success = true;
+                }
+            }
+        }
+        
+        if (success) {
+            await saveAlertHistory(sensorId, {
+                message: message,
+                type: alertType,
+                status: 'sent'
+            });
+            
+            alertLock[sensorId] = now;
+            
+            await window.update(window.ref(window.db, `device_configs/${sensorId}`), {
+                alert_count: (config.alert_count || 0) + 1,
+                last_alert_time: now
+            });
+            
+            updateStandaloneAlertPanel();
+            renderAlertHistoryTable(sensorId);
+            
+            console.log(`✅ ส่งแจ้งเตือน ${sensorId} สำเร็จ (${alertType})`);
+        }
+        
+        return success;
+    } catch (error) {
+        console.error("❌ sendCombinedAlert error:", error);
+        return false;
+    }
+}
+
+// 🔹 22.2: checkAllAlertConditions - ตรวจสอบเงื่อนไขทั้งหมด (ใช้ Advanced Alert)
+async function checkAllAlertConditions(sensorId, value, config) {
+    if (!config || !sensorId || value === undefined || value === null) return;
+    
+    if (config.alertEnabled === false) return;
+    if (!config.enabled) return;
+    if (config.type === 'board') return;
+    if (config.is_acknowledged === true) return;
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+    
+    let alertMessages = [];
+    
+    // 🔹 ดึงค่าจาก advancedAlert โดยตรง
+    const advanced = config.advancedAlert || {};
+    const threshold = advanced.threshold !== undefined ? advanced.threshold : null;
+    const rateChange = advanced.rateChange !== undefined ? advanced.rateChange : null;
+    const rateTime = advanced.rateTime !== undefined ? advanced.rateTime : 5;
+    
+    // 🔹 ตรวจสอบค่าวิกฤต (Threshold)
+    if (threshold !== null && numValue >= threshold) {
+        alertMessages.push(`🚨 วิกฤต: ค่า ${numValue.toFixed(2)} ${config.unit || ''} เกินเกณฑ์วิกฤต (${threshold})`);
+    }
+    
+    // 🔹 ตรวจสอบอัตราการเปลี่ยนแปลง (Rate of Change)
+    if (rateChange !== null && rateTime) {
+        const history = await getHistoryFromFirebase(sensorId, rateTime);
+        if (history.length > 0) {
+            const oldestValue = parseFloat(history[0]);
+            if (!isNaN(oldestValue)) {
+                const delta = numValue - oldestValue;
+                if (delta >= rateChange) {
+                    alertMessages.push(`📈 อัตราการเพิ่มสูง: เพิ่มขึ้น ${delta.toFixed(2)} ${config.unit || ''} ใน ${rateTime} นาที (เกณฑ์ ${rateChange})`);
+                }
+            }
+        }
+    }
+    
+    // 🔹 ตรวจสอบระดับ (Level)
+    if (config.levels) {
+        const levelResult = evaluateLevelWithCustom(numValue, config.levels);
+        if (levelResult.key === 'very_high' || levelResult.key === 'high') {
+            alertMessages.push(`📊 ระดับ ${levelResult.label}: ค่า ${numValue.toFixed(2)} ${config.unit || ''} อยู่ในระดับอันตราย`);
+        }
+    }
+    
+    // 🔹 ส่งแจ้งเตือนทุกข้อความที่ตรวจพบ
+    for (const msg of alertMessages) {
+        const fullMessage = `🚨 <b>แจ้งเตือนอุปกรณ์</b>\n📛 อุปกรณ์: ${config.name}\n🆔 ID: ${sensorId}\n⏱️ เวลา: ${new Date().toLocaleString('th-TH')}\n\n${msg}`;
+        await sendCombinedAlert(sensorId, config, fullMessage, 'condition');
+    }
+}
+
+// 🔹 22.3: checkAllAlertConditionsForAllDevices - ตรวจสอบทุกอุปกรณ์
+async function checkAllAlertConditionsForAllDevices() {
+    try {
+        for (const [id, config] of Object.entries(deviceConfigs)) {
+            const value = currentSensorValues[id];
+            if (value === undefined || value === null || isNaN(value)) continue;
+            await checkAllAlertConditions(id, value, config);
+        }
+    } catch (error) {
+        console.error('❌ checkAllAlertConditionsForAllDevices error:', error);
+    }
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 23: ฟังก์ชันเริ่มต้นระบบตามไฟล์ 17
+//    🔹 23.1 initializeAllFeatures - เรียกใช้ฟังก์ชันทั้งหมด
+// ==========================================
+
+// 🔹 23.1: initializeAllFeatures - เรียกใช้ฟังก์ชันทั้งหมด
+function initializeAllFeatures() {
+    // ใช้ CSS สำหรับ disabled-card
+    applyDisabledCardStyles();
+    
+    // อัปเดต dropdown ประวัติการแจ้งเตือน
+    updateAlertHistoryDropdown();
+    
+    console.log("✅ ระบบตามไฟล์ 17 ถูกเปิดใช้งานแล้ว (ครบทุกข้อ)");
+    console.log("   🔹 1. สถานะ 'อุปกรณ์ปิดอยู่' บน Sensor Card");
+    console.log("   🔹 2. ระบบยืนยันก่อนทำรายการ (Confirmation)");
+    console.log("   🔹 3. ปรับวันที่และเวลาเป็นภาษาไทย");
+    console.log("   🔹 4. ระบบจัดการความผิดพลาดที่เป็นมิตร");
+    console.log("   🔹 5. แสดงแถบสีเกณฑ์แจ้งเตือนในตาราง");
+    console.log("   🔹 6. ระบบบันทึกค่าเป็น Number (Advanced Alert)");
+    console.log("   🔹 7. ระบบ Anti-Spam และการแจ้งเตือนขั้นสูง");
+    console.log("   🔹 8. ระบบประวัติการแจ้งเตือนแบบละเอียด");
+    console.log("   🔹 9. ระบบส่งแจ้งเตือนแบบรวม (Combined Alert)");
+    console.log("   🔹 10. การรีเซ็ตปุ่มบันทึกอัตโนมัติ");
+    console.log("   🔹 11. เพิ่มคอลัมน์ ⏱️ เวลา(นาที) ในตารางเซนเซอร์");
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 24: ระบบแสดงสถานะอุปกรณ์ปิดอยู่
+//    🔹 24.1 applyDisabledCardStyles - ใช้ CSS สำหรับการ์ดที่ปิดอยู่
+// ==========================================
+
+// 🔹 24.1: applyDisabledCardStyles - เพิ่ม CSS สำหรับการ์ดที่ปิดอยู่
 function applyDisabledCardStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        /* 🔹 21.2.1: CSS สำหรับ disabled-card ตามไฟล์ 17 ข้อ 1 */
         .disabled-card {
             opacity: 0.6;
             filter: grayscale(1);
@@ -2556,25 +2919,23 @@ function applyDisabledCardStyles() {
     document.head.appendChild(style);
 }
 
-
 // ==========================================
-// 📋 หัวข้อหลักที่ 22: ระบบยืนยันก่อนทำรายการ (Confirmation) (ตามไฟล์ 17 ข้อ 2)
-//    🔹 22.1 confirmAction - ฟังก์ชันยืนยันการกระทำ
-//    🔹 22.2 confirmClearLocalData - ยืนยันการลบข้อมูลสถิติ
-//    🔹 22.3 confirmDeleteDevice - ยืนยันการลบอุปกรณ์ (แทนที่เดิม)
-//    🔹 22.4 confirmDeleteUser - ยืนยันการลบผู้ใช้ (แทนที่เดิม)
-//    🔹 22.5 confirmClearHistory - ยืนยันการล้างประวัติ (แทนที่เดิม)
+// 📋 หัวข้อหลักที่ 25: ระบบยืนยันก่อนทำรายการ (Confirmation)
+//    🔹 25.1 confirmAction - ฟังก์ชันยืนยันการกระทำ
+//    🔹 25.2 confirmClearLocalData - ยืนยันการลบข้อมูลสถิติ
+//    🔹 25.3 confirmDeleteDevice - ยืนยันการลบอุปกรณ์
+//    🔹 25.4 confirmDeleteUser - ยืนยันการลบผู้ใช้
+//    🔹 25.5 confirmClearHistory - ยืนยันการล้างประวัติ
 // ==========================================
 
-// 🔹 22.1: confirmAction - ฟังก์ชันหลักสำหรับยืนยันการกระทำ
+// 🔹 25.1: confirmAction - ฟังก์ชันหลักสำหรับยืนยันการกระทำ
 function confirmAction(message, warning = '⚠️ คำเตือน') {
     return confirm(`${warning}: ${message}`);
 }
 
-// 🔹 22.2: confirmClearLocalData - ยืนยันการลบข้อมูลสถิติ
+// 🔹 25.2: confirmClearLocalData - ยืนยันการลบข้อมูลสถิติ
 window.confirmClearLocalData = function() {
     if (confirm("⚠️ คำเตือน: คุณต้องการลบข้อมูลสถิติในเครื่องทั้งหมดใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
-        // โค้ดลบข้อมูลสถิติในเครื่อง
         if (sensorHistory) {
             sensorHistory.timestamps = [];
             sensorHistory.data = {};
@@ -2590,7 +2951,7 @@ window.confirmClearLocalData = function() {
     }
 };
 
-// 🔹 22.3: confirmDeleteDevice - ยืนยันการลบอุปกรณ์
+// 🔹 25.3: confirmDeleteDevice - ยืนยันการลบอุปกรณ์
 window.confirmDeleteDevice = function(id) {
     const config = deviceConfigs[id];
     const deviceName = config ? config.name : id;
@@ -2599,30 +2960,28 @@ window.confirmDeleteDevice = function(id) {
     }
 };
 
-// 🔹 22.4: confirmDeleteUser - ยืนยันการลบผู้ใช้
+// 🔹 25.4: confirmDeleteUser - ยืนยันการลบผู้ใช้
 window.confirmDeleteUser = function(username) {
     if (confirm(`⚠️ คำเตือน: คุณต้องการลบผู้ใช้ "${username}" ออกจากระบบถาวรใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
         deleteUser(username);
     }
 };
 
-// 🔹 22.5: confirmClearHistory - ยืนยันการล้างประวัติ
+// 🔹 25.5: confirmClearHistory - ยืนยันการล้างประวัติ
 window.confirmClearHistory = function() {
     if (confirm("⚠️ คำเตือน: คุณต้องการลบประวัติการส่งทั้งหมดใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
         clearHistory();
     }
 };
 
-
 // ==========================================
-// 📋 หัวข้อหลักที่ 23: ระบบปรับวันที่และเวลาเป็นภาษาไทย (ตามไฟล์ 17 ข้อ 3)
-//    🔹 23.1 formatThaiDate - แปลงวันที่เป็นภาษาไทย
-//    🔹 23.2 formatThaiDateTime - แปลงวันที่และเวลาเป็นภาษาไทย
-//    🔹 23.3 formatThaiTime - แปลงเวลาเป็นภาษาไทย
-//    🔹 23.4 applyThaiDateFormat - ใช้ฟังก์ชันในตารางประวัติ
+// 📋 หัวข้อหลักที่ 26: ระบบปรับวันที่และเวลาเป็นภาษาไทย
+//    🔹 26.1 formatThaiDate - แปลงวันที่เป็นภาษาไทย
+//    🔹 26.2 formatThaiDateTime - แปลงวันที่และเวลาเป็นภาษาไทย
+//    🔹 26.3 formatThaiTime - แปลงเวลาเป็นภาษาไทย
 // ==========================================
 
-// 🔹 23.1: formatThaiDate - แปลงวันที่เป็นภาษาไทย
+// 🔹 26.1: formatThaiDate - แปลงวันที่เป็นภาษาไทย
 function formatThaiDate(dateStr) {
     if (!dateStr) return '-';
     try {
@@ -2640,7 +2999,7 @@ function formatThaiDate(dateStr) {
     }
 }
 
-// 🔹 23.2: formatThaiDateTime - แปลงวันที่และเวลาแบบเต็ม
+// 🔹 26.2: formatThaiDateTime - แปลงวันที่และเวลาแบบเต็ม
 function formatThaiDateTime(dateStr) {
     if (!dateStr) return '-';
     try {
@@ -2659,7 +3018,7 @@ function formatThaiDateTime(dateStr) {
     }
 }
 
-// 🔹 23.3: formatThaiTime - แปลงเวลาเป็นภาษาไทย
+// 🔹 26.3: formatThaiTime - แปลงเวลาเป็นภาษาไทย
 function formatThaiTime(dateStr) {
     if (!dateStr) return '-';
     try {
@@ -2675,40 +3034,14 @@ function formatThaiTime(dateStr) {
     }
 }
 
-// 🔹 23.4: applyThaiDateFormat - นำไปใช้ในตารางประวัติ
-// แก้ไข renderHistoryTable ให้ใช้ formatThaiDate
-async function renderHistoryTable() {
-    const snap = await window.get(window.ref(window.db, 'settings/telegram/history'));
-    const tbody = document.getElementById('historyTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    if (snap.exists()) {
-        const history = Object.entries(snap.val()).reverse();
-        history.forEach(([id, item]) => {
-            // 🔹 23.4.1: ใช้ formatThaiDate แทน new Date().toLocaleTimeString()
-            const timestampDisplay = formatThaiDate(item.timestamp);
-            tbody.innerHTML += `<tr>
-                <td>${timestampDisplay}</td>
-                <td>${escapeHtml(item.target)}</td>
-                <td>${escapeHtml(item.sender)}</td>
-                <td>${item.status === 'success' ? '✅' : '❌'}</td>
-                <td><button onclick="deleteHistoryItem('${id}')" class="danger" style="background:#d32f2f; color:white; border:none; padding:4px 12px; border-radius:20px; cursor:pointer; font-size:0.7rem;">🗑️ ลบ</button></td>
-            </tr>`;
-        });
-    } else {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#2e7d32;">📭 ยังไม่มีประวัติการส่ง</td></tr>';
-    }
-}
-
-
 // ==========================================
-// 📋 หัวข้อหลักที่ 24: ระบบจัดการความผิดพลาดที่เป็นมิตร (Friendly Error Handling) (ตามไฟล์ 17 ข้อ 4)
-//    🔹 24.1 showFriendlyError - แสดงข้อความผิดพลาดที่เป็นมิตร
-//    🔹 24.2 wrapAsyncWithFriendlyError - ห่อหุ้มฟังก์ชัน async
-//    🔹 24.3 handleError - จัดการข้อผิดพลาดทั่วไป
+// 📋 หัวข้อหลักที่ 27: ระบบจัดการความผิดพลาดที่เป็นมิตร
+//    🔹 27.1 showFriendlyError - แสดงข้อความผิดพลาดที่เป็นมิตร
+//    🔹 27.2 wrapAsyncWithFriendlyError - ห่อหุ้มฟังก์ชัน async
+//    🔹 27.3 handleError - จัดการข้อผิดพลาดทั่วไป
 // ==========================================
 
-// 🔹 24.1: showFriendlyError - แสดงข้อความผิดพลาดที่เป็นมิตร
+// 🔹 27.1: showFriendlyError - แสดงข้อความผิดพลาดที่เป็นมิตร
 function showFriendlyError(err) {
     if (!err) {
         alert("⚠️ ขออภัย พบปัญหาในการทำงาน กรุณาลองใหม่อีกครั้ง");
@@ -2734,7 +3067,7 @@ function showFriendlyError(err) {
     }
 }
 
-// 🔹 24.2: wrapAsyncWithFriendlyError - ห่อหุ้มฟังก์ชัน async
+// 🔹 27.2: wrapAsyncWithFriendlyError - ห่อหุ้มฟังก์ชัน async
 async function wrapAsyncWithFriendlyError(asyncFn, fallbackValue = null) {
     try {
         return await asyncFn();
@@ -2744,43 +3077,83 @@ async function wrapAsyncWithFriendlyError(asyncFn, fallbackValue = null) {
     }
 }
 
-// 🔹 24.3: handleError - จัดการข้อผิดพลาดทั่วไป
+// 🔹 27.3: handleError - จัดการข้อผิดพลาดทั่วไป
 function handleError(err, context = '') {
     console.error(`❌ Error in ${context}:`, err);
     showFriendlyError(err);
 }
 
-
 // ==========================================
-// 📋 หัวข้อหลักที่ 25: ระบบแสดงแถบสีเกณฑ์แจ้งเตือนในตาราง (Device Table Level) (ตามไฟล์ 17 ข้อ 5)
-//    🔹 25.1 renderDeviceTableWithLevelBars - แสดงตารางพร้อมแถบสี
-//    🔹 25.2 createLevelBarsHTML - สร้าง HTML แถบสีระดับ
-//    🔹 25.3 renderDeviceTable - แทนที่ฟังก์ชันเดิม
+// 📋 หัวข้อหลักที่ 28: ระบบแสดงแถบสีเกณฑ์แจ้งเตือนในตาราง
+//    🔹 28.1 createLevelBarsHTML - สร้าง HTML แถบสีระดับ
 // ==========================================
 
-// 🔹 25.1: createLevelBarsHTML - สร้าง HTML แถบสีระดับ
+// 🔹 28.1: createLevelBarsHTML - สร้าง HTML แถบสีระดับ
 function createLevelBarsHTML(levels) {
     if (!levels) return '<span style="color:#64748b; font-size:0.6rem;">-</span>';
     
-    return LEVEL_KEYS.map(key => {
+    const levelKeys = ['very_high', 'high', 'normal', 'low', 'very_low'];
+    const levelNames = {
+        very_high: 'มากที่สุด',
+        high: 'มาก',
+        normal: 'ปานกลาง',
+        low: 'น้อย',
+        very_low: 'น้อยที่สุด'
+    };
+    const levelColors = {
+        very_high: '#ef4444',
+        high: '#f59e0b',
+        normal: '#10b981',
+        low: '#3b82f6',
+        very_low: '#6366f1'
+    };
+    
+    let html = '';
+    for (const key of levelKeys) {
         if (levels[key]) {
-            return `<span style="background:${LEVEL_COLORS[key]}; color:white; padding:2px 6px; border-radius:4px; font-size:0.6rem; margin-right:2px; display:inline-block;">${LEVEL_NAMES[key]}</span>`;
+            html += `<span style="background:${levelColors[key]}; color:white; padding:2px 6px; border-radius:4px; font-size:0.6rem; margin-right:2px; display:inline-block;">${levelNames[key]}</span>`;
         }
-        return '';
-    }).filter(Boolean).join('');
+    }
+    
+    return html || '<span style="color:#64748b; font-size:0.6rem;">-</span>';
 }
 
-// 🔹 25.2: renderDeviceTableWithLevelBars - แสดงตารางพร้อมแถบสี
-// แทนที่ฟังก์ชัน renderDeviceTable เดิม
-function renderDeviceTable() {
+// ==========================================
+// 📋 หัวข้อหลักที่ 29: ระบบจัดการ Thresholds (ใช้ Advanced Alert)
+//    🔹 29.1 renderDeviceTableWithThresholds - แสดงตารางเซนเซอร์ (ใช้ Advanced Alert)
+//    🔹 29.2 saveDeviceWithThresholds - บันทึกอุปกรณ์พร้อม Advanced Alert
+//    🔹 29.3 loadDeviceForEditWithThresholds - โหลดข้อมูลแก้ไข
+//    🔹 29.4 resetSaveButtonState - รีเซ็ตสถานะปุ่มบันทึก
+//    🔹 29.5 handleEditClickWithThresholds - จัดการคลิกปุ่มแก้ไข
+// ==========================================
+
+// 🔹 29.1: renderDeviceTableWithThresholds - แสดงตารางเซนเซอร์ (ใช้ Advanced Alert)
+function renderDeviceTableWithThresholds() {
     const tbody = document.getElementById('deviceTableBody');
     if (!tbody) return;
     
     const sensors = Object.entries(deviceConfigs).filter(([id, config]) => config.type !== 'board');
     
     if (sensors.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color:#64748b;">📭 ยังไม่มีข้อมูลเซนเซอร์ กรุณาเพิ่มเซนเซอร์ด้านบน</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color:#64748b;">📭 ยังไม่มีข้อมูลเซนเซอร์</td></tr>';
         return;
+    }
+
+    const thead = document.querySelector('#deviceTable thead');
+    if (thead) {
+        thead.innerHTML = `
+            <tr>
+                <th style="width: 8%;">🆔 ID</th>
+                <th style="width: 13%;">📛 ชื่อจุดติดตั้ง</th>
+                <th style="width: 10%;">🔍 ชนิด</th>
+                <th style="width: 8%;">📏 หน่วย</th>
+                <th style="width: 14%;">📊 ระดับการแจ้งเตือน</th>
+                <th style="width: 10%;">⚠️ ค่าวิกฤต</th>
+                <th style="width: 10%;">📈 อัตราเปลี่ยน</th>
+                <th style="width: 8%;">⏱️ เวลา(นาที)</th>
+                <th style="width: 19%;">⚙️ จัดการ</th>
+            </tr>
+        `;
     }
 
     tbody.innerHTML = '';
@@ -2803,53 +3176,343 @@ function renderDeviceTable() {
             typeDisplay = `📝 ${config.type}`;
         }
         
-        // 🔹 25.2.1: ใช้ createLevelBarsHTML แทนการสร้างแบบเดิม
         const levels = config.levels || null;
         const levelDisplay = levels ? createLevelBarsHTML(levels) : '<span style="color:#64748b; font-size:0.6rem;">-</span>';
         
-        const alertStatus = config.alertEnabled !== false ? '🟢 เปิด' : '🔴 ปิด';
+        // 🔹 ดึงค่าจาก advancedAlert โดยตรง (ใช้ชุดข้อมูลเดียว)
+        const advanced = config.advancedAlert || {};
+        const criticalVal = advanced.threshold !== null && advanced.threshold !== undefined ? advanced.threshold : '-';
+        const rateVal = advanced.rateChange !== null && advanced.rateChange !== undefined ? advanced.rateChange : '-';
+        const timeVal = advanced.rateTime !== null && advanced.rateTime !== undefined ? advanced.rateTime : '-';
         
-        const thresholds = config.thresholds || {};
-        let thresholdDisplay = '-';
-        if (Object.keys(thresholds).length > 0) {
-            thresholdDisplay = Object.entries(thresholds)
-                .map(([label, val]) => `${label}: ${val}`)
-                .join(', ');
-        }
+        const isEnabled = config.enabled !== false;
+        const statusIcon = isEnabled ? '✅' : '❌';
+        const statusColor = isEnabled ? '#4caf50' : '#ef4444';
         
         tr.innerHTML = `
-            <td data-label="ID"><strong style="color:#1b5e20; font-family: monospace;">${escapeHtml(id)}</strong></td>
+            <td data-label="ID">
+                <strong style="color:#1b5e20; font-family: monospace;">${escapeHtml(id)}</strong>
+                <span style="font-size: 0.7rem; color: ${statusColor}; margin-left: 4px;">${statusIcon}</span>
+            </td>
             <td data-label="ชื่อจุดติดตั้ง"><strong>📛 ${escapeHtml(config.name)}</strong></td>
             <td data-label="ชนิดเซนเซอร์">${typeDisplay}</td>
             <td data-label="หน่วยวัด" style="text-align: center;"><strong>${unitDisplay}</strong></td>
             <td data-label="ระดับการแจ้งเตือน" style="font-size:0.7rem;">${levelDisplay}</td>
-            <td data-label="เกณฑ์แจ้งเตือน"><span style="background: #e8f5e9; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; color:#1b5e20;">${thresholdDisplay}</span></td>
+            <td data-label="ค่าวิกฤต" style="text-align: center; font-weight: bold; color: #ef4444;">${criticalVal}</td>
+            <td data-label="อัตราเปลี่ยน" style="text-align: center; font-weight: bold; color: #f59e0b;">${rateVal}</td>
+            <td data-label="เวลา(นาที)" style="text-align: center; font-weight: bold; color: #3b82f6;">${timeVal}</td>
             <td data-label="จัดการ">
                 <button class="btn-small edit-btn" 
-                        style="background:#ffa726; margin-right:8px;"
-                        onclick="handleEditClick('${id}')">✏️ แก้ไข</button>
-                <button onclick="confirmDeleteDevice('${escapeHtml(id)}')" class="btn-small danger">🗑️ ลบ</button>
+                        style="background:#ffa726; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px;"
+                        onclick="handleEditClickWithThresholds('${id}')">✏️ แก้ไข</button>
+                <button onclick="confirmDeleteDevice('${escapeHtml(id)}')" 
+                        class="btn-small danger" 
+                        style="background:#d32f2f; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">🗑️ ลบ</button>
             </td>
         `;
         tbody.appendChild(tr);
     }
 }
 
-
-// ==========================================
-// 📋 หัวข้อหลักที่ 26: ฟังก์ชันเพิ่มเติมสำหรับการใช้งานตามไฟล์ 17
-//    🔹 26.1 initializeAllFeatures - เรียกใช้ฟังก์ชันทั้งหมด
-// ==========================================
-
-// 🔹 26.1: initializeAllFeatures - เรียกใช้ฟังก์ชันทั้งหมด
-function initializeAllFeatures() {
-    // ใช้ CSS สำหรับ disabled-card
-    applyDisabledCardStyles();
+// 🔹 29.2: saveDeviceWithThresholds - บันทึกอุปกรณ์พร้อม Advanced Alert (ใช้ข้อมูลชุดเดียว)
+window.saveDeviceWithThresholds = async function(isEdit = false) {
+    const id = document.getElementById('devId').value.trim();
+    const name = document.getElementById('devName').value.trim();
+    const unit = document.getElementById('devUnit').value.trim();
     
-    console.log("✅ ระบบตามไฟล์ 17 ถูกเปิดใช้งานแล้ว (5 ข้อ)");
-    console.log("   1. สถานะ 'อุปกรณ์ปิดอยู่' บน Sensor Card");
-    console.log("   2. ระบบยืนยันก่อนทำรายการ (Confirmation)");
-    console.log("   3. ปรับวันที่และเวลาเป็นภาษาไทย");
-    console.log("   4. ระบบจัดการความผิดพลาดที่เป็นมิตร (Friendly Error Handling)");
-    console.log("   5. แสดงแถบสีเกณฑ์แจ้งเตือนในตาราง (Device Table Level)");
+    const selectedType = document.getElementById('devType').value;
+    let type = selectedType;
+    if (selectedType === 'other') {
+        const customType = document.getElementById('devTypeCustom');
+        if (customType) {
+            type = customType.value.trim() || 'other';
+        } else {
+            type = 'other';
+        }
+    }
+    
+    const levels = getLevelConfigFromForm();
+    if (!levels) return;
+    
+    const alertEnabledCheckbox = document.getElementById('devAlertEnabled');
+    const alertEnabled = alertEnabledCheckbox ? alertEnabledCheckbox.checked : true;
+    
+    // 🔹 ดึงค่าจาก Advanced Alert เท่านั้น
+    const alertThresholdInput = document.getElementById('alertThreshold');
+    const alertRateChangeInput = document.getElementById('alertRateChange');
+    const alertRateTimeInput = document.getElementById('alertRateTime');
+    
+    const advancedAlert = {
+        threshold: alertThresholdInput?.value ? Number(alertThresholdInput.value) : null,
+        rateChange: alertRateChangeInput?.value ? Number(alertRateChangeInput.value) : null,
+        rateTime: alertRateTimeInput?.value ? Number(alertRateTimeInput.value) : null
+    };
+    
+    if (!id || !name) return alert("กรุณากรอก ID และ ชื่อจุดติดตั้ง");
+    
+    if (!isEdit) {
+        try {
+            const checkSnapshot = await window.get(window.ref(window.db, `device_configs/${id}`));
+            if (checkSnapshot.exists()) {
+                alert(`❌ ID ${id} มีอยู่ในระบบแล้ว กรุณาใช้ ID อื่น`);
+                return;
+            }
+        } catch (err) {
+            console.warn("⚠️ ตรวจสอบ ID ซ้ำไม่สำเร็จ:", err);
+        }
+    }
+    
+    try {
+        const updateData = {
+            name: name,
+            type: type,
+            unit: unit,
+            levels: levels,
+            advancedAlert: advancedAlert,
+            alertEnabled: alertEnabled,
+            updatedAt: new Date().toISOString()
+        };
+        
+        if (!isEdit) {
+            updateData.enabled = true;
+            updateData.alert_count = 0;
+            updateData.is_acknowledged = false;
+            updateData.last_alert_time = null;
+        }
+        
+        await window.update(window.ref(window.db, `device_configs/${id}`), updateData);
+        
+        if (deviceConfigs[id]) {
+            deviceConfigs[id] = { ...deviceConfigs[id], ...updateData };
+        }
+        
+        const actionText = isEdit ? 'อัปเดต' : 'เพิ่ม';
+        alert(`✅ ${actionText}อุปกรณ์ ${id} สำเร็จ [แจ้งเตือน: ${alertEnabled ? 'เปิด' : 'ปิด'}]`);
+        
+        resetSaveButtonState();
+        
+        renderDeviceTableWithThresholds();
+        renderBoardTable();
+        renderSensorCards();
+        updateChartStructure();
+        updateStandaloneAlertPanel();
+        renderSummaryTable();
+        updateAlertHistoryDropdown();
+        
+        if (!isEdit) {
+            resetDeviceForm();
+        } else {
+            const config = deviceConfigs[id];
+            if (config) {
+                loadDeviceForEditWithThresholds(
+                    id, 
+                    config.name, 
+                    config.type, 
+                    config.unit || '', 
+                    config.levels || null,
+                    config.alertEnabled !== false
+                );
+            }
+        }
+        
+        console.log(`✅ ${actionText}อุปกรณ์ ${id} สำเร็จ`);
+        
+    } catch (error) {
+        alert("❌ ไม่สามารถบันทึกอุปกรณ์ได้: " + error.message);
+    }
+};
+
+// 🔹 29.3: loadDeviceForEditWithThresholds - โหลดข้อมูลแก้ไข
+window.loadDeviceForEditWithThresholds = function(id, name, type, unit, levels, alertEnabled) {
+    document.getElementById('devId').value = id;
+    document.getElementById('devId').readOnly = true;
+    document.getElementById('devName').value = name;
+    document.getElementById('devUnit').value = unit;
+    
+    const alertCheckbox = document.getElementById('devAlertEnabled');
+    if (alertCheckbox) {
+        alertCheckbox.checked = (alertEnabled !== false);
+    }
+    
+    // 🔹 โหลด Advanced Alert จาก config
+    const config = deviceConfigs[id];
+    if (config) {
+        loadAdvancedAlertConfig(config);
+    }
+    
+    const typeSelect = document.getElementById('devType');
+    const customContainer = document.getElementById('customTypeContainer');
+    const customInput = document.getElementById('devTypeCustom');
+    
+    const optionExists = Array.from(typeSelect.options).some(opt => opt.value === type);
+    
+    if (optionExists) {
+        typeSelect.value = type;
+        if (customContainer) customContainer.style.display = 'none';
+    } else {
+        typeSelect.value = 'other';
+        if (customContainer) customContainer.style.display = 'block';
+        if (customInput) customInput.value = type;
+    }
+    
+    if (levels && Object.keys(levels).length > 0) {
+        renderLevelConfigInline(levels);
+    } else {
+        renderLevelConfigInline(null);
+    }
+    
+    const modeSelect = document.getElementById('levelModeSelect');
+    if (modeSelect) modeSelect.value = 'manual';
+    toggleLevelMode();
+    
+    const saveBtn = document.querySelector('#deviceModal .save-btn');
+    if (saveBtn) {
+        saveBtn.textContent = '💾 อัปเดตข้อมูล';
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds(true)');
+    }
+    
+    const modal = document.getElementById('deviceModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+    
+    renderDeviceTableWithThresholds();
+    renderBoardTable();
+    updateAlertHistoryDropdown();
+};
+
+// 🔹 29.4: resetSaveButtonState - รีเซ็ตสถานะปุ่มบันทึก
+function resetSaveButtonState() {
+    const saveBtn = document.querySelector('#deviceModal .save-btn');
+    if (saveBtn) {
+        saveBtn.textContent = '💾 บันทึก';
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds()');
+    }
 }
+
+// 🔹 29.5: handleEditClickWithThresholds - จัดการคลิกปุ่มแก้ไข
+window.handleEditClickWithThresholds = function(id) {
+    const config = deviceConfigs[id];
+    if (!config) {
+        alert("ไม่พบข้อมูลอุปกรณ์");
+        return;
+    }
+    
+    loadDeviceForEditWithThresholds(
+        id, 
+        config.name, 
+        config.type, 
+        config.unit || '', 
+        config.levels || null,
+        config.alertEnabled !== false
+    );
+};
+
+// ==========================================
+// 🚀 หัวข้อหลักที่ 30: DOMContentLoaded - จุดเริ่มต้นหลัก
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 กำลังเริ่มต้นระบบ...");
+    
+    if (window.db) {
+        initFirebaseListeners();
+    }
+    
+    const checkDbInterval = setInterval(() => {
+        if (window.db) {
+            clearInterval(checkDbInterval);
+            const settingsRef = window.ref(window.db, 'settings/log_interval');
+            window.onValue(settingsRef, (snapshot) => {
+                if (snapshot.exists()) startAutoLogging(snapshot.val());
+                else startAutoLogging(15);
+            });
+        }
+    }, 500);
+    
+    function checkAutoLogin() {
+        const rememberMe = localStorage.getItem('rememberMe') === 'true';
+        if (rememberMe) {
+            const savedUsername = localStorage.getItem('savedUsername');
+            const savedPassword = localStorage.getItem('savedPassword');
+            if (savedUsername && savedPassword) {
+                document.getElementById('username').value = savedUsername;
+                document.getElementById('password').value = savedPassword;
+                document.getElementById('rememberMe').checked = true;
+                handleLogin();
+            }
+        }
+    }
+    checkAutoLogin();
+    
+    function initReportTypeSelector() {
+        const reportTypeSelect = document.getElementById('reportTypeSelect');
+        if (!reportTypeSelect) {
+            const userActions = document.getElementById('userActions');
+            if (userActions) {
+                const selectHtml = `
+                    <select id="reportTypeSelect" style="padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #1e293b; color: #e2e8f0; border: 1px solid #475569;">
+                        <option value="status">📊 รายงานสถานะฮาร์ดแวร์ปัจจุบัน</option>
+                        <option value="system">⚙️ รายงานสภาพการทำงานของระบบ</option>
+                    </select>
+                    <br>
+                `;
+                userActions.insertAdjacentHTML('afterbegin', selectHtml);
+            }
+        }
+    }
+    initReportTypeSelector();
+    
+    function showReportButtonForAll() {
+        const userActions = document.getElementById('userActions');
+        if (userActions) {
+            userActions.style.display = 'block';
+        }
+    }
+    showReportButtonForAll();
+    
+    initChart();
+    createStandaloneAlertPanelIfNotExists();
+    initCustomTypeFields();
+    
+    window.renderLevelConfigInline = renderLevelConfigInline;
+    window.toggleLevelMode = toggleLevelMode;
+    window.applyBoundaryToLevels = applyBoundaryToLevels;
+    window.resetLevelConfigInline = resetLevelConfigInline;
+    window.getLevelConfigFromForm = getLevelConfigFromForm;
+    window.saveDeviceWithLevelConfig = saveDeviceWithLevelConfig;
+    window.loadDeviceForEditWithLevelConfig = loadDeviceForEditWithLevelConfig;
+    window.evaluateLevelWithCustom = evaluateLevelWithCustom;
+    window.updateSensorCardLevel = updateSensorCardLevel;
+    window.checkLevelAlert = checkLevelAlert;
+    window.checkLevelAlerts = checkLevelAlerts;
+    
+    renderLevelConfigInline(null);
+    toggleLevelMode();
+    
+    initializeAllFeatures();
+    updateAlertHistoryDropdown();
+    
+    console.log("✅ ระบบพร้อมทำงาน (เวอร์ชันสมบูรณ์ + ใช้ Advanced Alert แทน Threshold Inputs)");
+});
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 31: ฟังก์ชันเสริมสำหรับความเข้ากันได้
+//    🔹 31.1 ขยาย processNewData ให้เรียก analyzeSensorLogic และ checkAllAlertConditions
+// ==========================================
+
+// 🔹 31.1: ขยาย processNewData แบบสมบูรณ์
+const originalProcessNewData = processNewData;
+
+processNewData = async function(dataObj) {
+    if (originalProcessNewData) {
+        originalProcessNewData(dataObj);
+    }
+    
+    for (const [id, value] of Object.entries(dataObj)) {
+        const config = deviceConfigs[id];
+        if (!config) continue;
+        await analyzeSensorLogic(id, value, config);
+        await checkAllAlertConditions(id, value, config);
+    }
+};
