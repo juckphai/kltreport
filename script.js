@@ -3516,3 +3516,753 @@ processNewData = async function(dataObj) {
         await checkAllAlertConditions(id, value, config);
     }
 };
+// ==========================================
+// 📋 หัวข้อหลักที่ 32: ระบบตัวช่วยสร้างระดับอัตโนมัติ (Auto Level Generator) - ตามไฟล์ 17
+//    🔹 32.1 SENSOR_TEMPLATES - ค่าเทมเพลตสำหรับเซนเซอร์แต่ละชนิด
+//    🔹 32.2 autoGenerateLevels - สร้าง 5 ระดับอัตโนมัติจาก Min/Max
+//    🔹 32.3 applyRiverLevels - สร้างระดับสำหรับ Ultrasonic (River Mode)
+//    🔹 32.4 loadSensorTemplate - โหลดเทมเพลตตามชนิดเซนเซอร์
+//    🔹 32.5 getLevelConfigFromFormExtended - อ่านค่าระดับ (รองรับค่ามากกว่า 100)
+// ==========================================
+
+// 🔹 32.1: SENSOR_TEMPLATES - ค่าเทมเพลตสำหรับเซนเซอร์แต่ละชนิด
+const SENSOR_TEMPLATES = {
+    ultrasonic: {
+        label: '📡 Ultrasonic (วัดระดับน้ำ)',
+        levels: {
+            very_low: { min: 0, max: 30, label: 'น้ำน้อยมาก' },
+            low: { min: 31, max: 60, label: 'น้ำน้อย' },
+            normal: { min: 61, max: 120, label: 'ปกติ' },
+            high: { min: 121, max: 180, label: 'น้ำมาก' },
+            very_high: { min: 181, max: 300, label: 'น้ำมากมาก' }
+        }
+    },
+    ultrasonic_river: {
+        label: '🌊 Ultrasonic (River Mode - ระดับน้ำจริง)',
+        levels: {
+            very_low: { min: 0, max: 19, label: 'น้ำน้อยมาก' },
+            low: { min: 20, max: 39, label: 'น้ำน้อย' },
+            normal: { min: 40, max: 69, label: 'ปกติ' },
+            high: { min: 70, max: 89, label: 'เตือนภัย' },
+            very_high: { min: 90, max: 999, label: 'วิกฤต' }
+        }
+    },
+    soil: {
+        label: '🌱 Soil (ความชื้นดิน)',
+        levels: {
+            very_low: { min: 0, max: 19, label: 'แห้งมาก' },
+            low: { min: 20, max: 39, label: 'แห้ง' },
+            normal: { min: 40, max: 69, label: 'ปกติ' },
+            high: { min: 70, max: 89, label: 'ชื้น' },
+            very_high: { min: 90, max: 100, label: 'ชื้นมาก' }
+        }
+    },
+    ph: {
+        label: '🧪 pH (ค่ากรดด่าง)',
+        levels: {
+            very_low: { min: 0, max: 3, label: 'กรดจัด' },
+            low: { min: 4, max: 5, label: 'กรด' },
+            normal: { min: 6, max: 8, label: 'เป็นกลาง' },
+            high: { min: 9, max: 10, label: 'ด่าง' },
+            very_high: { min: 11, max: 14, label: 'ด่างจัด' }
+        }
+    },
+    temp: {
+        label: '🌡️ Temperature (อุณหภูมิ)',
+        levels: {
+            very_low: { min: -10, max: 9, label: 'หนาวจัด' },
+            low: { min: 10, max: 19, label: 'หนาว' },
+            normal: { min: 20, max: 29, label: 'ปกติ' },
+            high: { min: 30, max: 39, label: 'ร้อน' },
+            very_high: { min: 40, max: 50, label: 'ร้อนจัด' }
+        }
+    },
+    rain: {
+        label: '🌧️ Rain (ปริมาณน้ำฝน)',
+        levels: {
+            very_low: { min: 0, max: 4, label: 'ฝนน้อย' },
+            low: { min: 5, max: 19, label: 'ฝนปานกลาง' },
+            normal: { min: 20, max: 49, label: 'ฝนตก' },
+            high: { min: 50, max: 99, label: 'ฝนหนัก' },
+            very_high: { min: 100, max: 999, label: 'ฝนหนักมาก' }
+        }
+    }
+};
+
+// 🔹 32.2: autoGenerateLevels - สร้าง 5 ระดับอัตโนมัติจาก Min/Max
+window.autoGenerateLevels = function() {
+    const minInput = document.getElementById('autoMin');
+    const maxInput = document.getElementById('autoMax');
+    
+    if (!minInput || !maxInput) {
+        console.warn("⚠️ ไม่พบฟิลด์ autoMin หรือ autoMax");
+        return;
+    }
+    
+    const min = parseFloat(minInput.value);
+    const max = parseFloat(maxInput.value);
+
+    if (isNaN(min) || isNaN(max)) {
+        alert('⚠️ กรุณากรอกค่าต่ำสุดและสูงสุดให้ถูกต้อง');
+        return;
+    }
+    
+    if (max <= min) {
+        alert('⚠️ ค่าสูงสุดต้องมากกว่าค่าต่ำสุด');
+        return;
+    }
+
+    const step = (max - min) / 5;
+    
+    const levels = {
+        very_low: { 
+            min: Math.round(min), 
+            max: Math.round(min + step - 1), 
+            label: 'น้อยที่สุด' 
+        },
+        low: { 
+            min: Math.round(min + step), 
+            max: Math.round(min + step * 2 - 1), 
+            label: 'น้อย' 
+        },
+        normal: { 
+            min: Math.round(min + step * 2), 
+            max: Math.round(min + step * 3 - 1), 
+            label: 'ปานกลาง' 
+        },
+        high: { 
+            min: Math.round(min + step * 3), 
+            max: Math.round(min + step * 4 - 1), 
+            label: 'มาก' 
+        },
+        very_high: { 
+            min: Math.round(min + step * 4), 
+            max: Math.round(max), 
+            label: 'มากที่สุด' 
+        }
+    };
+    
+    renderLevelConfigInline(levels);
+    
+    // แสดงข้อความแจ้งเตือน
+    const container = document.getElementById('levelConfigInlineContainer');
+    if (container) {
+        container.dataset.boundaryApplied = 'true';
+    }
+    
+    console.log(`✅ สร้างระดับอัตโนมัติจาก ${min} ถึง ${max} (step=${step.toFixed(2)})`);
+};
+
+// 🔹 32.3: applyRiverLevels - สร้างระดับสำหรับ Ultrasonic (River Mode)
+window.applyRiverLevels = function() {
+    const minInput = document.getElementById('riverMin');
+    const normalInput = document.getElementById('riverNormal');
+    const warningInput = document.getElementById('riverWarning');
+    const criticalInput = document.getElementById('riverCritical');
+    
+    if (!minInput || !normalInput || !warningInput || !criticalInput) {
+        console.warn("⚠️ ไม่พบฟิลด์ River Mode");
+        return;
+    }
+    
+    const min = parseFloat(minInput.value);
+    const normal = parseFloat(normalInput.value);
+    const warning = parseFloat(warningInput.value);
+    const critical = parseFloat(criticalInput.value);
+
+    if (isNaN(min) || isNaN(normal) || isNaN(warning) || isNaN(critical)) {
+        alert('⚠️ กรุณากรอกค่าทุกช่องให้ถูกต้อง');
+        return;
+    }
+    
+    if (min >= normal || normal >= warning || warning >= critical) {
+        alert('⚠️ ค่าต้องเรียงจากน้อยไปมาก: Min < Normal < Warning < Critical');
+        return;
+    }
+
+    const levels = {
+        very_low: { 
+            min: 0, 
+            max: min, 
+            label: 'น้ำน้อยมาก' 
+        },
+        low: { 
+            min: min + 1, 
+            max: normal, 
+            label: 'น้ำน้อย' 
+        },
+        normal: { 
+            min: normal + 1, 
+            max: warning, 
+            label: 'ปกติ' 
+        },
+        high: { 
+            min: warning + 1, 
+            max: critical, 
+            label: 'เตือนภัย' 
+        },
+        very_high: { 
+            min: critical + 1, 
+            max: 999, 
+            label: 'วิกฤต' 
+        }
+    };
+    
+    renderLevelConfigInline(levels);
+    
+    const container = document.getElementById('levelConfigInlineContainer');
+    if (container) {
+        container.dataset.boundaryApplied = 'true';
+    }
+    
+    console.log(`✅ ตั้งค่าระดับ River Mode: Min=${min}, Normal=${normal}, Warning=${warning}, Critical=${critical}`);
+};
+
+// 🔹 32.4: loadSensorTemplate - โหลดเทมเพลตตามชนิดเซนเซอร์
+window.loadSensorTemplate = function(templateKey) {
+    if (!templateKey || !SENSOR_TEMPLATES[templateKey]) {
+        alert('⚠️ ไม่พบเทมเพลตสำหรับชนิดนี้');
+        return;
+    }
+    
+    const template = SENSOR_TEMPLATES[templateKey];
+    const levels = template.levels;
+    
+    // แสดงระดับที่โหลด
+    renderLevelConfigInline(levels);
+    
+    // เปลี่ยนโหมดเป็น Manual
+    const modeSelect = document.getElementById('levelModeSelect');
+    if (modeSelect) {
+        modeSelect.value = 'manual';
+        toggleLevelMode();
+    }
+    
+    const container = document.getElementById('levelConfigInlineContainer');
+    if (container) {
+        container.dataset.boundaryApplied = 'true';
+    }
+    
+    console.log(`✅ โหลดเทมเพลต ${template.label} สำเร็จ`);
+};
+
+// 🔹 32.5: getLevelConfigFromFormExtended - อ่านค่าระดับ (รองรับค่ามากกว่า 100)
+// แทนที่ฟังก์ชัน getLevelConfigFromForm เดิมด้วยเวอร์ชันที่รองรับค่ามากกว่า 100
+const originalGetLevelConfigFromForm = window.getLevelConfigFromForm || getLevelConfigFromForm;
+
+window.getLevelConfigFromForm = function() {
+    const container = document.getElementById('levelConfigInlineContainer');
+    if (!container) return null;
+    
+    const levels = {};
+    let isValid = true;
+    const errors = [];
+    
+    LEVEL_KEYS.forEach(key => {
+        const minInput = container.querySelector(`.level-min-inline[data-level="${key}"]`);
+        const maxInput = container.querySelector(`.level-max-inline[data-level="${key}"]`);
+        const labelInput = container.querySelector(`.level-label-inline[data-level="${key}"]`);
+        
+        if (minInput && maxInput && labelInput) {
+            const min = parseFloat(minInput.value);
+            const max = parseFloat(maxInput.value);
+            const label = labelInput.value.trim() || LEVEL_NAMES[key];
+            
+            if (isNaN(min) || isNaN(max)) {
+                isValid = false;
+                errors.push(`ระดับ ${key}: กรุณากรอกตัวเลข`);
+                return;
+            }
+            
+            // 🔹 แก้ไข: รองรับค่ามากกว่า 100 และค่าน้อยกว่า 0 (ลบ)
+            if (min >= max) {
+                isValid = false;
+                errors.push(`ระดับ ${key}: Min (${min}) ต้องน้อยกว่า Max (${max})`);
+                return;
+            }
+            
+            // 🔹 ลบเงื่อนไข min < 0 || max > 100 ออก เพื่อรองรับค่าจริง
+            levels[key] = { min, max, label, color: LEVEL_COLORS[key] };
+        }
+    });
+    
+    if (isValid) {
+        const ranges = LEVEL_KEYS.map(key => ({ key, min: levels[key].min, max: levels[key].max }));
+        ranges.sort((a, b) => a.min - b.min);
+        
+        for (let i = 0; i < ranges.length - 1; i++) {
+            if (ranges[i].max >= ranges[i + 1].min) {
+                isValid = false;
+                errors.push(`ค่าระดับ ${ranges[i].key} (${ranges[i].min}-${ranges[i].max}) ทับซ้อนกับ ${ranges[i+1].key} (${ranges[i+1].min}-${ranges[i+1].max})`);
+                break;
+            }
+        }
+    }
+    
+    if (!isValid) {
+        alert(`⚠️ ข้อมูลระดับไม่ถูกต้อง:\n${errors.join('\n')}`);
+        return null;
+    }
+    
+    return levels;
+};
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 33: ระบบเทมเพลตเซนเซอร์ (Sensor Template System)
+//    🔹 33.1 renderTemplateSelector - แสดงตัวเลือกเทมเพลตในฟอร์ม
+//    🔹 33.2 initTemplateSelector - เริ่มต้นระบบเทมเพลต
+// ==========================================
+
+// 🔹 33.1: renderTemplateSelector - แสดงตัวเลือกเทมเพลตในฟอร์ม
+function renderTemplateSelector() {
+    const container = document.getElementById('templateSelectorContainer');
+    if (!container) return;
+    
+    let html = `
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+            <span style="color: #94a3b8; font-size: 0.75rem; display: flex; align-items: center;">📋 โหลดเทมเพลต:</span>
+    `;
+    
+    for (const [key, template] of Object.entries(SENSOR_TEMPLATES)) {
+        html += `
+            <button type="button" onclick="loadSensorTemplate('${key}')" 
+                    style="background: #1e293b; color: #e2e8f0; border: 1px solid #475569; 
+                           padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.7rem;
+                           hover:background: #334155;">
+                ${template.label}
+            </button>
+        `;
+    }
+    
+    html += `
+            <button type="button" onclick="resetLevelConfigInline()" 
+                    style="background: #ef4444; color: white; border: none; 
+                           padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">
+                🔄 รีเซ็ต
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// 🔹 33.2: initTemplateSelector - เริ่มต้นระบบเทมเพลต
+function initTemplateSelector() {
+    // สร้าง container สำหรับเทมเพลตใน deviceModal
+    const levelConfigContainer = document.getElementById('levelConfigInlineContainer');
+    if (levelConfigContainer) {
+        const parent = levelConfigContainer.parentElement;
+        if (parent) {
+            // ตรวจสอบว่ามี templateSelectorContainer แล้วหรือยัง
+            let templateContainer = document.getElementById('templateSelectorContainer');
+            if (!templateContainer) {
+                templateContainer = document.createElement('div');
+                templateContainer.id = 'templateSelectorContainer';
+                templateContainer.style.cssText = 'margin-bottom: 8px;';
+                parent.insertBefore(templateContainer, levelConfigContainer);
+            }
+            renderTemplateSelector();
+        }
+    }
+    
+    // สร้าง UI สำหรับ Auto Generate (Min/Max)
+    const autoGenerateContainer = document.getElementById('autoGenerateContainer');
+    if (!autoGenerateContainer) {
+        const levelConfigContainer2 = document.getElementById('levelConfigInlineContainer');
+        if (levelConfigContainer2) {
+            const parent = levelConfigContainer2.parentElement;
+            if (parent) {
+                const container = document.createElement('div');
+                container.id = 'autoGenerateContainer';
+                container.style.cssText = 'margin-bottom: 8px; padding: 8px 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;';
+                container.innerHTML = `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.75rem;">⚡ สร้างอัตโนมัติ:</span>
+                        <input type="number" id="autoMin" placeholder="Min" step="any"
+                               style="width: 80px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.7rem;">ถึง</span>
+                        <input type="number" id="autoMax" placeholder="Max" step="any"
+                               style="width: 80px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <button type="button" onclick="autoGenerateLevels()" 
+                                style="background: #3b82f6; color: white; border: none; 
+                                       padding: 4px 16px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                            ⚡ สร้าง 5 ระดับ
+                        </button>
+                    </div>
+                `;
+                parent.insertBefore(container, levelConfigContainer2);
+            }
+        }
+    }
+    
+    // สร้าง UI สำหรับ River Mode (Ultrasonic เฉพาะ)
+    const riverModeContainer = document.getElementById('riverModeContainer');
+    if (!riverModeContainer) {
+        const levelConfigContainer3 = document.getElementById('levelConfigInlineContainer');
+        if (levelConfigContainer3) {
+            const parent = levelConfigContainer3.parentElement;
+            if (parent) {
+                const container = document.createElement('div');
+                container.id = 'riverModeContainer';
+                container.style.cssText = 'margin-bottom: 8px; padding: 8px 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;';
+                container.innerHTML = `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.75rem;">🌊 River Mode (Ultrasonic):</span>
+                        <input type="number" id="riverMin" placeholder="Min" step="any"
+                               style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.7rem;">ปกติ</span>
+                        <input type="number" id="riverNormal" placeholder="Normal" step="any"
+                               style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.7rem;">เตือน</span>
+                        <input type="number" id="riverWarning" placeholder="Warning" step="any"
+                               style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <span style="color: #64748b; font-size: 0.7rem;">วิกฤต</span>
+                        <input type="number" id="riverCritical" placeholder="Critical" step="any"
+                               style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                        <button type="button" onclick="applyRiverLevels()" 
+                                style="background: #10b981; color: white; border: none; 
+                                       padding: 4px 16px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                            🌊 ตั้งค่า
+                        </button>
+                    </div>
+                    <div style="font-size: 0.6rem; color: #64748b; margin-top: 4px;">
+                        ใช้สำหรับเซนเซอร์ Ultrasonic ที่วัดระดับน้ำจริง (หน่วย cm)
+                    </div>
+                `;
+                parent.insertBefore(container, levelConfigContainer3);
+            }
+        }
+    }
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 34: ฟังก์ชันเริ่มต้นระบบตามไฟล์ 17 (Extended)
+//    🔹 34.1 initializeFile17Features - เริ่มต้นฟีเจอร์ทั้งหมดจากไฟล์ 17
+// ==========================================
+
+// 🔹 34.1: initializeFile17Features - เริ่มต้นฟีเจอร์ทั้งหมดจากไฟล์ 17
+function initializeFile17Features() {
+    console.log("🚀 กำลังเริ่มต้นระบบตามไฟล์ 17...");
+    
+    // 1. เริ่มต้นระบบเทมเพลต
+    initTemplateSelector();
+    
+    // 2. ตรวจสอบและเพิ่มฟิลด์ Auto Generate
+    const autoMin = document.getElementById('autoMin');
+    const autoMax = document.getElementById('autoMax');
+    if (!autoMin || !autoMax) {
+        // รอให้ DOM โหลดเสร็จแล้วค่อยสร้าง
+        setTimeout(initTemplateSelector, 500);
+    }
+    
+    // 3. แก้ไขฟังก์ชัน renderLevelConfigInline ให้รองรับค่าจริง
+    console.log("✅ ระบบตามไฟล์ 17 เริ่มต้นเรียบร้อย");
+    console.log("   🔹 1. เทมเพลตเซนเซอร์ (Sensor Templates)");
+    console.log("   🔹 2. ตัวช่วยสร้างระดับอัตโนมัติ (Auto Generate)");
+    console.log("   🔹 3. River Mode สำหรับ Ultrasonic");
+    console.log("   🔹 4. รองรับค่ามากกว่า 100 และค่าน้อยกว่า 0");
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 35: การขยายฟังก์ชันแสดงผลระดับ (Extended)
+//    🔹 35.1 evaluateLevelWithCustomExtended - ประเมินค่าระดับ (รองรับค่าจริง)
+//    🔹 35.2 updateSensorCardLevelExtended - อัปเดตระดับใน Card (รองรับค่าจริง)
+// ==========================================
+
+// 🔹 35.1: evaluateLevelWithCustomExtended - ประเมินค่าระดับ (รองรับค่าจริง)
+function evaluateLevelWithCustomExtended(value, levels) {
+    if (!levels || typeof value !== 'number' || isNaN(value)) {
+        return { key: 'unknown', label: 'ไม่มีข้อมูล', color: '#9ca3af' };
+    }
+
+    const levelKeys = ['very_high', 'high', 'normal', 'low', 'very_low'];
+    const colors = {
+        very_high: '#ef4444',
+        high: '#f59e0b',
+        normal: '#10b981',
+        low: '#3b82f6',
+        very_low: '#6366f1'
+    };
+
+    for (const key of levelKeys) {
+        const level = levels[key];
+        if (level && value >= level.min && value <= level.max) {
+            return {
+                key: key,
+                label: level.label || key,
+                color: level.color || colors[key] || '#9ca3af'
+            };
+        }
+    }
+
+    return { key: 'unknown', label: 'นอกเกณฑ์', color: '#9ca3af' };
+}
+
+// 🔹 35.2: updateSensorCardLevelExtended - อัปเดตระดับใน Card (รองรับค่าจริง)
+function updateSensorCardLevelExtended(sensorId, value) {
+    const container = document.getElementById(`levelBadge_${sensorId}`);
+    if (!container) return;
+
+    const config = deviceConfigs[sensorId];
+    if (!config) return;
+
+    const levels = config.levels || null;
+    if (!levels) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const result = evaluateLevelWithCustomExtended(value, levels);
+    if (result.key === 'unknown') {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="sensor-level-badge level-${result.key}" 
+             style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.65rem; font-weight:700; margin-top:4px; background:${result.color}; color:white;">
+            ${result.label}
+        </div>
+    `;
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 36: การอัปเดตฟังก์ชันหลักให้ใช้เวอร์ชัน Extended
+//    🔹 36.1 patchMainFunctions - แทนที่ฟังก์ชันหลักด้วยเวอร์ชัน Extended
+// ==========================================
+
+// 🔹 36.1: patchMainFunctions - แทนที่ฟังก์ชันหลักด้วยเวอร์ชัน Extended
+function patchMainFunctions() {
+    // แทนที่ฟังก์ชัน evaluateLevelWithCustom ด้วยเวอร์ชัน Extended
+    if (typeof evaluateLevelWithCustom === 'function') {
+        window.evaluateLevelWithCustom = evaluateLevelWithCustomExtended;
+    }
+    
+    // แทนที่ฟังก์ชัน updateSensorCardLevel ด้วยเวอร์ชัน Extended
+    if (typeof updateSensorCardLevel === 'function') {
+        window.updateSensorCardLevel = updateSensorCardLevelExtended;
+    }
+    
+    console.log("✅ อัปเดตฟังก์ชันหลักเป็นเวอร์ชัน Extended (รองรับค่าจริง)");
+}
+
+// ==========================================
+// 🚀 หัวข้อหลักที่ 37: การเริ่มต้นระบบทั้งหมด (รวมไฟล์ 17)
+//    🔹 37.1 initializeAllFeaturesWithFile17 - เริ่มต้นทุกอย่างพร้อมไฟล์ 17
+// ==========================================
+
+// 🔹 37.1: initializeAllFeaturesWithFile17 - เริ่มต้นทุกอย่างพร้อมไฟล์ 17
+function initializeAllFeaturesWithFile17() {
+    // เรียกใช้ฟังก์ชันเดิม
+    if (typeof initializeAllFeatures === 'function') {
+        initializeAllFeatures();
+    }
+    
+    // เรียกใช้ฟังก์ชันจากไฟล์ 17
+    initializeFile17Features();
+    
+    // แก้ไขฟังก์ชันหลัก
+    patchMainFunctions();
+    
+    console.log("✅ ระบบทั้งหมด (รวมไฟล์ 17) ถูกเปิดใช้งานแล้ว");
+    console.log("   📋 ฟีเจอร์เพิ่มเติมจากไฟล์ 17:");
+    console.log("   🔹 ตัวช่วยสร้างระดับอัตโนมัติ (Auto Generate)");
+    console.log("   🔹 เทมเพลตเซนเซอร์ (Sensor Templates)");
+    console.log("   🔹 River Mode สำหรับ Ultrasonic");
+    console.log("   🔹 รองรับค่าจริง (มากกว่า 100 และต่ำกว่า 0)");
+    console.log("   🔹 ฟังก์ชัน loadSensorTemplate");
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 38: การเพิ่มฟังก์ชันในหน้าต่าง Device Manager
+//    🔹 38.1 openDeviceManagerExtended - เปิด Device Manager พร้อมฟีเจอร์ใหม่
+// ==========================================
+
+// 🔹 38.1: openDeviceManagerExtended - เปิด Device Manager พร้อมฟีเจอร์ใหม่
+const originalOpenDeviceManager = window.openDeviceManager;
+
+window.openDeviceManager = function() {
+    if (originalOpenDeviceManager) {
+        originalOpenDeviceManager();
+    }
+    
+    // เริ่มต้นระบบเทมเพลตเมื่อเปิด Device Manager
+    setTimeout(() => {
+        initTemplateSelector();
+        renderTemplateSelector();
+    }, 100);
+};
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 39: การเพิ่มฟังก์ชันรีเซ็ตฟอร์มแบบ Extended
+//    🔹 39.1 resetDeviceFormExtended - รีเซ็ตฟอร์มพร้อมฟิลด์ใหม่
+// ==========================================
+
+// 🔹 39.1: resetDeviceFormExtended - รีเซ็ตฟอร์มพร้อมฟิลด์ใหม่
+const originalResetDeviceForm = window.resetDeviceForm || resetDeviceForm;
+
+window.resetDeviceForm = function() {
+    if (originalResetDeviceForm) {
+        originalResetDeviceForm();
+    }
+    
+    // รีเซ็ตฟิลด์ Auto Generate
+    const autoMin = document.getElementById('autoMin');
+    const autoMax = document.getElementById('autoMax');
+    if (autoMin) autoMin.value = '';
+    if (autoMax) autoMax.value = '';
+    
+    // รีเซ็ตฟิลด์ River Mode
+    const riverMin = document.getElementById('riverMin');
+    const riverNormal = document.getElementById('riverNormal');
+    const riverWarning = document.getElementById('riverWarning');
+    const riverCritical = document.getElementById('riverCritical');
+    if (riverMin) riverMin.value = '';
+    if (riverNormal) riverNormal.value = '';
+    if (riverWarning) riverWarning.value = '';
+    if (riverCritical) riverCritical.value = '';
+};
+
+// ==========================================
+// 🚀 DOMContentLoaded - ขยายการเริ่มต้น (รวมไฟล์ 17)
+// ==========================================
+
+// เก็บฟังก์ชันเดิมไว้
+const originalDOMContentLoaded = document.addEventListener('DOMContentLoaded');
+
+// เพิ่มการเริ่มต้นระบบไฟล์ 17
+document.addEventListener('DOMContentLoaded', function() {
+    // รอให้ระบบหลักทำงานเสร็จก่อน
+    setTimeout(() => {
+        initializeAllFeaturesWithFile17();
+    }, 1000);
+});
+// ==========================================
+// 📋 หัวข้อหลักที่ 40: ระบบแสดงผล Label แบบ Dynamic (ปรับปรุงตามไฟล์ 17)
+//    🔹 40.1 evaluateLevelWithCustom - ประเมินค่าระดับแบบ Dynamic (ใช้ label จาก Firebase)
+//    🔹 40.2 createLevelBarsHTML - แสดงแถบสถานะแบบ Dynamic (ใช้ label และ color จาก Firebase)
+//    🔹 40.3 updateSensorCardLevelDynamic - อัปเดตระดับใน Card แบบ Dynamic
+// ==========================================
+
+// 🔹 40.1: evaluateLevelWithCustom - ประเมินค่าระดับแบบ Dynamic (ใช้ label จาก Firebase)
+function evaluateLevelWithCustom(value, levels) {
+    if (!levels || typeof value !== 'number' || isNaN(value)) {
+        return { key: 'unknown', label: 'ไม่มีข้อมูล', color: '#9ca3af' };
+    }
+
+    // ใช้ keys จาก levels โดยตรง (ไม่ใช้ค่าคงที่ LEVEL_KEYS เพื่อให้รองรับการเปลี่ยนแปลง)
+    const levelKeys = Object.keys(levels);
+
+    for (const key of levelKeys) {
+        const level = levels[key];
+        if (level && value >= level.min && value <= level.max) {
+            return {
+                key: key,
+                label: level.label || key, // ใช้ label ที่บันทึกไว้ใน Firebase
+                color: level.color || '#9ca3af'
+            };
+        }
+    }
+
+    return { key: 'unknown', label: 'นอกเกณฑ์', color: '#9ca3af' };
+}
+
+// 🔹 40.2: createLevelBarsHTML - แสดงแถบสถานะแบบ Dynamic (ใช้ label และ color จาก Firebase)
+function createLevelBarsHTML(levels) {
+    if (!levels) return '<span style="color:#64748b; font-size:0.6rem;">-</span>';
+    
+    let html = '';
+    for (const key in levels) {
+        const level = levels[key];
+        if (level) {
+            html += `<span style="background:${level.color || '#9ca3af'}; color:white; padding:2px 6px; border-radius:4px; font-size:0.6rem; margin-right:2px; display:inline-block;" title="${level.min}-${level.max}">${level.label || key}</span>`;
+        }
+    }
+    
+    return html || '<span style="color:#64748b; font-size:0.6rem;">-</span>';
+}
+
+// 🔹 40.3: updateSensorCardLevelDynamic - อัปเดตระดับใน Card แบบ Dynamic
+function updateSensorCardLevelDynamic(sensorId, value) {
+    const container = document.getElementById(`levelBadge_${sensorId}`);
+    if (!container) return;
+
+    const config = deviceConfigs[sensorId];
+    if (!config) return;
+
+    const levels = config.levels || null;
+    if (!levels) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const result = evaluateLevelWithCustom(value, levels);
+    if (result.key === 'unknown') {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="sensor-level-badge level-${result.key}" 
+             style="display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.65rem; font-weight:700; margin-top:4px; background:${result.color}; color:white;">
+            ${result.label}
+        </div>
+    `;
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 41: การแทนที่ฟังก์ชันหลักด้วยเวอร์ชัน Dynamic (ตามไฟล์ 17)
+//    🔹 41.1 patchLevelFunctions - แทนที่ฟังก์ชันระดับด้วยเวอร์ชัน Dynamic
+// ==========================================
+
+// 🔹 41.1: patchLevelFunctions - แทนที่ฟังก์ชันระดับด้วยเวอร์ชัน Dynamic
+function patchLevelFunctions() {
+    // แทนที่ฟังก์ชัน evaluateLevelWithCustom ด้วยเวอร์ชัน Dynamic
+    if (typeof window.evaluateLevelWithCustom === 'function') {
+        window.evaluateLevelWithCustom = evaluateLevelWithCustom;
+    }
+    
+    // แทนที่ฟังก์ชัน createLevelBarsHTML ด้วยเวอร์ชัน Dynamic
+    if (typeof window.createLevelBarsHTML === 'function') {
+        window.createLevelBarsHTML = createLevelBarsHTML;
+    }
+    
+    // แทนที่ฟังก์ชัน updateSensorCardLevel ด้วยเวอร์ชัน Dynamic
+    if (typeof window.updateSensorCardLevel === 'function') {
+        window.updateSensorCardLevel = updateSensorCardLevelDynamic;
+    }
+    
+    console.log("✅ อัปเดตฟังก์ชันระดับเป็นเวอร์ชัน Dynamic (ใช้ label และ color จาก Firebase)");
+}
+
+// ==========================================
+// 📋 หัวข้อหลักที่ 42: การเริ่มต้นระบบ Dynamic Label (ตามไฟล์ 17)
+//    🔹 42.1 initializeDynamicLabelSystem - เริ่มต้นระบบแสดงผล Label แบบ Dynamic
+// ==========================================
+
+// 🔹 42.1: initializeDynamicLabelSystem - เริ่มต้นระบบแสดงผล Label แบบ Dynamic
+function initializeDynamicLabelSystem() {
+    // 1. แทนที่ฟังก์ชันหลักด้วยเวอร์ชัน Dynamic
+    patchLevelFunctions();
+    
+    // 2. รีเฟรชการแสดงผล UI ที่เกี่ยวข้องกับระดับ
+    //    - อัปเดตการ์ดเซนเซอร์ทั้งหมด
+    //    - อัปเดตตารางอุปกรณ์
+    //    - อัปเดตตารางสรุป
+    if (typeof renderSensorCards === 'function') {
+        renderSensorCards();
+    }
+    if (typeof renderDeviceTable === 'function') {
+        renderDeviceTable();
+    }
+    if (typeof renderSummaryTable === 'function') {
+        renderSummaryTable();
+    }
+    
+    console.log("✅ ระบบ Dynamic Label ถูกเปิดใช้งานแล้ว");
+    console.log("   🔹 ฟังก์ชัน evaluateLevelWithCustom: ใช้ label จาก Firebase");
+    console.log("   🔹 ฟังก์ชัน createLevelBarsHTML: ใช้ label และ color จาก Firebase");
+    console.log("   🔹 ฟังก์ชัน updateSensorCardLevel: ใช้ label และ color จาก Firebase");
+}
+
+console.log("✅ โหลดโค้ดจากไฟล์ 17 เรียบร้อย (หัวข้อหลักที่ 32-39)");

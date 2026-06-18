@@ -210,6 +210,7 @@
             <button onclick="window.confirmClearLocalData && confirmClearLocalData()" class="danger">🗑️ Clear Local Data</button>
             <button onclick="window.openUserManager && openUserManager()" style="background-color: #ff9800;">👥 จัดการผู้ใช้</button>
             <button onclick="window.openDeviceManager && openDeviceManager()" style="background-color: #2196F3;">⚙️ จัดการบอร์ดและเซนเซอร์</button>
+            <button onclick="window.openSettingsManager && openSettingsManager()" style="background-color: #9C27B0;">🛠️ ตั้งค่าระบบ & สำรองข้อมูล</button>
         </div>
 
         <!-- ========================================================== -->
@@ -311,7 +312,9 @@
                 </div>
             </div>
 
-            <!-- ส่วนจัดการบอร์ด ESP32 -->
+            <!-- ========================================================== -->
+            <!-- 🔹 ส่วนจัดการบอร์ด ESP32                                     -->
+            <!-- ========================================================== -->
             <section id="boardSection" style="margin-bottom: 40px;">
                 <h3 style="color: #1a3a5f;">🔌 จัดการบอร์ด ESP32</h3>
                 <button onclick="startProvisioningProcess()" class="save-btn" style="background: linear-gradient(135deg, #4CAF50, #388E3C);">
@@ -340,11 +343,15 @@
                 </div>
             </section>
 
-            <!-- ส่วนจัดการเซนเซอร์ -->
+            <!-- ========================================================== -->
+            <!-- 🔹 ส่วนจัดการเซนเซอร์                                        -->
+            <!-- ========================================================== -->
             <section id="sensorSection">
                 <h3 style="color: #1a3a5f;">🌱 จัดการเซนเซอร์ในแต่ละจุด</h3>
                 
-                <!-- ฟอร์มเพิ่ม/แก้ไขเซนเซอร์ (ใช้ระบบ 5 ระดับ) -->
+                <!-- ========================================================== -->
+                <!-- 🔹 ฟอร์มเพิ่ม/แก้ไขเซนเซอร์ (เวอร์ชันปรับปรุงตามไฟล์ 17)       -->
+                <!-- ========================================================== -->
                 <div class="user-management-form">
                     <h3 style="margin-bottom: 15px; color: #1a3a5f;">➕ เพิ่ม/แก้ไขเซนเซอร์</h3>
                     
@@ -371,11 +378,60 @@
                     </div>
                     
                     <!-- ========================================================== -->
-                    <!-- 🔹 33.1: Threshold Inputs (ถูกลบแล้ว ใช้ Advanced Alert แทน) -->
+                    <!-- 🔹 32.1: ระบบตัวช่วยสร้างระดับอัตโนมัติ (Auto Level Generator) -->
                     <!-- ========================================================== -->
-                    <!-- ส่วนนี้ถูกลบออกไปแล้ว เนื่องจากใช้ Advanced Alert แทน -->
                     
-                    <!-- ระบบตั้งค่าระดับการแจ้งเตือน 5 ระดับ -->
+                    <!-- 📋 32.1.1: Template Selector - โหลดเทมเพลตตามชนิดเซนเซอร์ -->
+                    <div id="templateSelectorContainer" style="margin-top: 12px; margin-bottom: 8px;">
+                        <!-- สร้างโดย JavaScript -->
+                    </div>
+                    
+                    <!-- ⚡ 32.1.2: Auto Generate - สร้าง 5 ระดับจาก Min/Max -->
+                    <div id="autoGenerateContainer" style="margin-bottom: 8px; padding: 8px 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <span style="color: #94a3b8; font-size: 0.75rem;">⚡ สร้างอัตโนมัติ:</span>
+                            <input type="number" id="autoMin" placeholder="Min" step="any"
+                                   style="width: 80px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <span style="color: #64748b; font-size: 0.7rem;">ถึง</span>
+                            <input type="number" id="autoMax" placeholder="Max" step="any"
+                                   style="width: 80px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <button type="button" onclick="autoGenerateLevels()" 
+                                    style="background: #3b82f6; color: white; border: none; 
+                                           padding: 4px 16px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                ⚡ สร้าง 5 ระดับ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 🌊 32.1.3: River Mode - สำหรับ Ultrasonic วัดระดับน้ำจริง -->
+                    <div id="riverModeContainer" style="margin-bottom: 8px; padding: 8px 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <span style="color: #94a3b8; font-size: 0.75rem;">🌊 River Mode (Ultrasonic):</span>
+                            <input type="number" id="riverMin" placeholder="Min" step="any"
+                                   style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <span style="color: #64748b; font-size: 0.7rem;">ปกติ</span>
+                            <input type="number" id="riverNormal" placeholder="Normal" step="any"
+                                   style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <span style="color: #64748b; font-size: 0.7rem;">เตือน</span>
+                            <input type="number" id="riverWarning" placeholder="Warning" step="any"
+                                   style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <span style="color: #64748b; font-size: 0.7rem;">วิกฤต</span>
+                            <input type="number" id="riverCritical" placeholder="Critical" step="any"
+                                   style="width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; font-size: 0.75rem;">
+                            <button type="button" onclick="applyRiverLevels()" 
+                                    style="background: #10b981; color: white; border: none; 
+                                           padding: 4px 16px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                🌊 ตั้งค่า
+                            </button>
+                        </div>
+                        <div style="font-size: 0.6rem; color: #64748b; margin-top: 4px;">
+                            ใช้สำหรับเซนเซอร์ Ultrasonic ที่วัดระดับน้ำจริง (หน่วย cm)
+                        </div>
+                    </div>
+                    
+                    <!-- ========================================================== -->
+                    <!-- 🔹 ระบบตั้งค่าระดับการแจ้งเตือน 5 ระดับ                      -->
+                    <!-- ========================================================== -->
                     <div class="level-config-inline" style="margin-top: 12px; padding: 12px 16px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                             <h4 style="color: #e2e8f0; margin: 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
@@ -415,12 +471,12 @@
                             </div>
                         </div>
                         <div style="font-size: 0.6rem; color: #64748b; margin-top: 6px;">
-                            ⚠️ ค่า Min ต้องน้อยกว่า Max และไม่ทับซ้อนกัน
+                            ⚠️ ค่า Min ต้องน้อยกว่า Max และไม่ทับซ้อนกัน <span style="color: #3b82f6;">| 🆕 รองรับค่าจริง (มากกว่า 100 หรือติดลบได้)</span>
                         </div>
                     </div>
                     
                     <!-- ========================================================== -->
-                    <!-- 🔹 33.2: Advanced Alert Section                             -->
+                    <!-- 🔹 Advanced Alert Section                                    -->
                     <!-- ========================================================== -->
                     <div id="advancedAlertSection" class="advanced-alert-config" style="margin-top: 15px; padding: 12px 16px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
                         <h4 style="color: #e2e8f0; margin: 0 0 10px 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
@@ -471,6 +527,7 @@
                         <br>* Checkbox "เปิดใช้งานการแจ้งเตือน": ถ้ายกเลิกเลือก ระบบจะไม่ส่งการแจ้งเตือนสำหรับอุปกรณ์นี้
                         <br>* Advanced Alert: ระบบจะแจ้งเตือนตามเงื่อนไขที่กำหนดเพิ่มเติม
                         <br>* ค่าวิกฤตและอัตราการเปลี่ยนแปลง: ระบบจะแสดงในตารางและใช้เป็นเงื่อนไขแจ้งเตือน
+                        <br>* <span style="color: #3b82f6;">🆕 รองรับค่าจริง: ไม่จำกัดแค่ 0-100% (ใช้ได้กับอุณหภูมิ, pH, ระดับน้ำ cm)</span>
                     </p>
                 </div>
 
@@ -480,7 +537,7 @@
                 </div>
 
                 <!-- ========================================================== -->
-                <!-- 🔹 33.3: ตารางเซนเซอร์                                      -->
+                <!-- 🔹 ตารางเซนเซอร์                                            -->
                 <!-- ========================================================== -->
                 <div class="device-table-wrapper">
                     <table class="device-table" id="sensor-table">
@@ -507,8 +564,8 @@
                     </table>
                 </div>
                 
-                 <!-- ========================================================== -->
-                <!-- 🔹 33.4: ประวัติการแจ้งเตือน (ตามไฟล์ 17)                     -->
+                <!-- ========================================================== -->
+                <!-- 🔹 ประวัติการแจ้งเตือน (ตามไฟล์ 17)                          -->
                 <!-- ========================================================== -->
                 <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 20px;">
                     <h4 style="color: #e2e8f0; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -648,19 +705,7 @@
     <!-- ============================================================== -->
     <!-- 🟢 เรียกใช้ไฟล์ script.js (การทำงานหลักทั้งหมด)                   -->
     <!-- ============================================================== -->
-        <script src="script.js"></script>
-
-    <!-- ============================================================== -->
-    <!-- 🟢 Script สำหรับเพิ่มปุ่มตั้งค่าระบบ (Dynamic Button)             -->
-    <!-- ============================================================== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const adminControls = document.getElementById('adminControls');
-            if(adminControls) {
-                adminControls.innerHTML += `<button onclick="window.openSettingsManager && openSettingsManager()" style="background-color: #9C27B0;">🛠️ ตั้งค่าระบบ & สำรองข้อมูล</button>`;
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 
     <!-- ============================================================== -->
     <!-- 🟢 โค้ดที่เพิ่มเข้ามาใหม่ (ป้องกันการคลิกขวา และฟังก์ชันนำทาง)    -->
