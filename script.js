@@ -931,18 +931,41 @@ window.saveDeviceWithLevelConfig = async function(isEdit = false) {
         
         alert(`✅ ${isEdit ? 'อัปเดต' : 'เพิ่ม'}อุปกรณ์ ${id} สำเร็จ [แจ้งเตือน: ${alertEnabled ? 'เปิด' : 'ปิด'}]`);
         
-        closeDeviceManager();
+        // 🔹 แก้ไข: ไม่ปิดหน้าต่างอัตโนมัติ แต่อัปเดตข้อมูลและคงหน้าต่างไว้
+        // closeDeviceManager(); // ❌ เอาออก
         renderDeviceTable();
         renderBoardTable();
         renderSensorCards();
         updateChartStructure();
         updateStandaloneAlertPanel();
         renderSummaryTable();
+        
+        // 🔹 รีเซ็ตฟอร์มให้พร้อมสำหรับการเพิ่มอุปกรณ์ใหม่ (กรณีเพิ่ม)
+        if (!isEdit) {
+            resetDeviceForm();
+        } else {
+            // กรณีแก้ไข: โหลดข้อมูลเดิมกลับมา (เพื่อให้เห็นว่าอัปเดตแล้ว)
+            // แต่ให้ฟอร์มอยู่ในสถานะแก้ไขต่อไป
+            const config = deviceConfigs[id];
+            if (config) {
+                loadDeviceForEditWithLevelConfig(
+                    id, 
+                    config.name, 
+                    config.type, 
+                    config.unit || '', 
+                    config.levels || null,
+                    config.alertEnabled !== false
+                );
+            }
+        }
+        
+        // 🔹 แสดงข้อความแจ้งให้ทราบว่าสามารถทำงานต่อได้
+        console.log(`✅ ${isEdit ? 'อัปเดต' : 'เพิ่ม'}อุปกรณ์ ${id} สำเร็จ หน้าต่างยังคงเปิดอยู่เพื่อทำงานต่อ`);
+        
     } catch (error) {
         alert("❌ ไม่สามารถบันทึกอุปกรณ์ได้: " + error.message);
     }
 };
-
 // 🔹 8.14: loadDeviceForEditWithLevelConfig
 window.loadDeviceForEditWithLevelConfig = function(id, name, type, unit, levels, alertEnabled) {
     document.getElementById('devId').value = id;
@@ -986,13 +1009,15 @@ window.loadDeviceForEditWithLevelConfig = function(id, name, type, unit, levels,
         saveBtn.setAttribute('onclick', 'saveDeviceWithLevelConfig(true)');
     }
     
+    // 🔹 แก้ไข: เปิด modal (ถ้ายังไม่เปิด) แต่ไม่ปิดอัตโนมัติ
     const modal = document.getElementById('deviceModal');
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+        modal.style.display = 'flex';
+    }
     
     renderDeviceTable();
     renderBoardTable();
 };
-
 // ==========================================
 // 🔌 หัวข้อหลักที่ 9: ระบบ Provisioning ติดตั้งบอร์ดผ่าน USB
 //    🔹 9.1 startProvisioningProcess - เริ่มกระบวนการติดตั้ง
