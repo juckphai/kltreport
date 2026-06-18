@@ -1373,7 +1373,7 @@ input[type="password"]:focus {
 }
 
 /* ============================================================== */
-/* 🟢 23. FOOTER & EXPORT AREA                                   */
+/* 🟢 23. FOOTER & EXPORT AREA (Responsive Optimized)             */
 /* ============================================================== */
 footer {
     position: fixed;
@@ -1393,7 +1393,8 @@ footer .footer-content {
     gap: 10px;
     background: rgba(0, 50, 150, 0.85);
     backdrop-filter: blur(12px);
-    padding: 10px 28px;
+    /* ปรับ padding ให้ยืดหยุ่นตามหน้าจอด้วย */
+    padding: clamp(8px, 2vw, 12px) clamp(16px, 5vw, 28px);
     border-radius: 50px;
     border: 3px solid rgba(255, 105, 180, 0.85);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.2);
@@ -1402,7 +1403,8 @@ footer .footer-content {
 }
 
 footer .copyright-icon {
-    font-size: 1.1rem;
+    /* ใช้ clamp เพื่อให้ icon ปรับขนาดตามหน้าจอ */
+    font-size: clamp(0.8rem, 1.5vw, 1.1rem);
     color: #ffd700;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
@@ -1410,10 +1412,12 @@ footer .copyright-icon {
 
 footer .copyright-text {
     color: #ffffff;
-    font-size: 1.1rem;
+    /* ใช้ clamp: เล็กสุด 0.8rem, ถ้าหน้าจอกว้างขึ้นจะขยายไปเรื่อยๆ จนหยุดที่ 1.1rem */
+    font-size: clamp(0.8rem, 1.5vw, 1.1rem);
     font-weight: 600;
     letter-spacing: 0.5px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    white-space: nowrap; /* ป้องกันข้อความขึ้นบรรทัดใหม่ */
 }
 
 footer .footer-content:hover {
@@ -1421,4 +1425,3 @@ footer .footer-content:hover {
     box-shadow: 0 4px 40px rgba(255, 215, 0, 0.15), inset 0 1px 0 rgba(255, 215, 0, 0.3);
     transition: all 0.3s ease;
 }
-
