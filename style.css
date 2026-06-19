@@ -1,3 +1,37 @@
+/* ================================================================
+   🎨 STYLE.CSS - ระบบจัดการและรายงานโครงการ (น้องโค้ก)
+   ================================================================
+   📋 สารบัญ
+   ----------------------------------------------------------------
+   1.0  ระบบฐาน (Global Reset & Body)
+   2.0  ระบบพื้นหลัง (Background & Effects)
+   3.0  โครงสร้างหลัก (Container, Header)
+   4.0  แถบสถานะ (Status Bar)
+   5.0  ข้อมูลผู้ใช้ (User Info Bar)
+   6.0  ผู้ใช้ออนไลน์ (Online Users Compact)
+   7.0  การ์ดเซนเซอร์ (Sensor Grid & Cards)
+   8.0  กราฟ (Chart Container)
+   9.0  ปุ่มควบคุม (Controls & Buttons)
+   10.0 Modal พื้นฐาน (Modal Overlay & Content)
+   11.0 ฟอร์มจัดการผู้ใช้ (User Management Form)
+   12.0 ระบบล็อกอิน (Login Overlay)
+   13.0 ตารางผู้ใช้ (User Table)
+   14.0 ตารางอุปกรณ์ (Device Table)
+   15.0 ระดับน้ำและสถานะ (Water Level & Status)
+   16.0 สรุปสถานะ (Status Summary Container)
+   17.0 ปุ่มสลับและแจ้งเตือน (Toggle & Alert Buttons)
+   18.0 การตั้งค่าระดับแบบอินไลน์ (Level Config Inline)
+   19.0 แบดจ์ระดับแบบกำหนดเอง (Custom Level Badges)
+   20.0 แถบเลื่อน (Scrollbar)
+   21.0 Responsive (Media Queries)
+   22.0 ส่วนช่วยเหลือ (Help Section)
+   23.0 ฟุตเตอร์ (Footer)
+   24.0 คลาสเสริมและยูทิลิตี้ (Utilities)
+   ================================================================ */
+
+/* ================================================================
+   1.0 ระบบฐาน (Global Reset & Body)
+   ================================================================ */
 * {
     margin: 0;
     padding: 0;
@@ -14,6 +48,9 @@ body {
     line-height: 1.6;
 }
 
+/* ================================================================
+   2.0 ระบบพื้นหลัง (Background & Effects)
+   ================================================================ */
 body::before {
     content: '';
     position: fixed;
@@ -27,9 +64,9 @@ body::before {
     pointer-events: none;
 }
 
-
-
-
+/* ================================================================
+   3.0 โครงสร้างหลัก (Container, Header)
+   ================================================================ */
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -47,7 +84,7 @@ body::before {
     text-align: center;
     font-size: clamp(1.4rem, 6vw, 2.2rem);
     font-weight: 700;
-    text-shadow: 2px 2px 8px rgba(255,255,255,0.3);
+    text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.3);
     background: linear-gradient(135deg, #1a3a2a, #2d5a3a, #3d7a4a);
     background-clip: text;
     -webkit-background-clip: text;
@@ -58,7 +95,7 @@ body::before {
 }
 
 #editTitleBtn {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(8px);
     border-radius: 50%;
     width: clamp(38px, 5vw, 44px);
@@ -68,35 +105,35 @@ body::before {
     justify-content: center;
     font-size: clamp(1rem, 3vw, 1.4rem);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     color: #1a3a2a;
 }
 
 #editTitleBtn:hover {
-    background: rgba(255,255,255,0.6);
+    background: rgba(255, 255, 255, 0.6);
     transform: rotate(15deg) scale(1.05);
 }
 
-
-
-
+/* ================================================================
+   4.0 แถบสถานะ (Status Bar)
+   ================================================================ */
 .status-bar {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(12px);
     padding: clamp(12px, 2vh, 16px) clamp(15px, 4vw, 25px);
     border-radius: 60px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: #1a3a2a;
 }
 
-.status-bar > div:first-child {
+.status-bar>div:first-child {
     display: flex;
     align-items: center;
     gap: clamp(8px, 2vw, 12px);
@@ -113,24 +150,31 @@ body::before {
     border-radius: 40px;
     font-weight: bold;
     font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.connection-status.online { background: #2d7a2d; color: white; }
-.connection-status.offline { background: #c62828; color: white; }
+.connection-status.online {
+    background: #2d7a2d;
+    color: white;
+}
+
+.connection-status.offline {
+    background: #c62828;
+    color: white;
+}
 
 .sync-status {
     font-weight: bold;
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.3);
     padding: clamp(4px, 1.5vw, 6px) clamp(10px, 2.5vw, 14px);
     border-radius: 40px;
     font-size: clamp(0.7rem, 2.5vw, 0.9rem);
     color: #1a3a2a;
 }
 
-
-
-
+/* ================================================================
+   5.0 ข้อมูลผู้ใช้ (User Info Bar)
+   ================================================================ */
 .user-info {
     position: fixed;
     top: 16px;
@@ -157,14 +201,14 @@ body::before {
 
 .user-avatar {
     font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .user-name {
     color: #ffffff;
     font-weight: 600;
     font-size: clamp(0.7rem, 2vw, 0.9rem);
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     padding: clamp(2px, 1vw, 4px) clamp(8px, 2vw, 12px);
     border-radius: 40px;
     letter-spacing: 0.3px;
@@ -186,9 +230,9 @@ body::before {
     transform: translateY(-2px);
 }
 
-
-
-
+/* ================================================================
+   6.0 ผู้ใช้ออนไลน์ (Online Users Compact)
+   ================================================================ */
 .online-users-compact {
     display: flex;
     align-items: center;
@@ -212,9 +256,16 @@ body::before {
 }
 
 @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; text-shadow: 0 0 8px #a5d6a7; }
-    100% { opacity: 0.6; }
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+        text-shadow: 0 0 8px #a5d6a7;
+    }
+    100% {
+        opacity: 0.6;
+    }
 }
 
 #compactOnlineText {
@@ -242,7 +293,7 @@ body::before {
     transition: all 0.2s ease;
     z-index: 1001;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     pointer-events: none;
 }
 
@@ -282,13 +333,13 @@ body::before {
     color: #a5d6a7;
     font-size: clamp(0.55rem, 1.8vw, 0.7rem);
     font-weight: bold;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 5px;
 }
 
-
-
-
+/* ================================================================
+   7.0 การ์ดเซนเซอร์ (Sensor Grid & Cards)
+   ================================================================ */
 .sensor-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -300,9 +351,9 @@ body::before {
     background: linear-gradient(145deg, #ffffff, #f0f7e8);
     border-radius: 28px;
     padding: clamp(16px, 4vw, 24px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    border: 1px solid rgba(255,255,255,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     position: relative;
     overflow: hidden;
 }
@@ -329,7 +380,7 @@ body::before {
 
 .sensor-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 25px 45px rgba(0,0,0,0.15);
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
 }
 
 .sensor-title {
@@ -384,9 +435,18 @@ body::before {
 }
 
 @keyframes alertPulse {
-    0% { opacity: 0.8; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.02); }
-    100% { opacity: 0.8; transform: scale(1); }
+    0% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+    100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
 }
 
 .alert-badge.flood {
@@ -414,21 +474,21 @@ body::before {
     gap: 6px;
 }
 
-
-
-
+/* ================================================================
+   8.0 กราฟ (Chart Container)
+   ================================================================ */
 .chart-container {
-    background: rgba(255,255,255,0.95);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 28px;
     padding: clamp(15px, 4vw, 25px);
     margin-bottom: 28px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(2px);
 }
 
-
-
-
+/* ================================================================
+   9.0 ปุ่มควบคุม (Controls & Buttons)
+   ================================================================ */
 .controls {
     display: flex;
     gap: clamp(10px, 2vw, 16px);
@@ -447,7 +507,7 @@ button {
     font-size: clamp(0.7rem, 3vw, 0.95rem);
     font-weight: 600;
     transition: all 0.25s ease;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -457,7 +517,7 @@ button {
 button:hover {
     filter: brightness(1.08);
     transform: translateY(-3px);
-    box-shadow: 0 12px 22px rgba(0,0,0,0.18);
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
 }
 
 button:active {
@@ -468,13 +528,15 @@ button.danger {
     background: linear-gradient(105deg, #c62828, #b71c1c);
 }
 
-
-
-
+/* ================================================================
+   10.0 Modal พื้นฐาน (Modal Overlay & Content)
+   ================================================================ */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(12px);
     display: flex;
@@ -487,7 +549,7 @@ button.danger {
 .modal-content {
     background: linear-gradient(145deg, #ffffff, #f0f7e8);
     border-radius: 32px;
-    box-shadow: 0 35px 60px rgba(0,0,0,0.25);
+    box-shadow: 0 35px 60px rgba(0, 0, 0, 0.25);
     padding: clamp(20px, 5vw, 32px);
     width: 95%;
     max-width: 1200px;
@@ -497,10 +559,17 @@ button.danger {
 }
 
 @keyframes modalPop {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
+/* ปรับปรุง Header ของ Modal */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -508,6 +577,7 @@ button.danger {
     border-bottom: 2px solid #a5d6a7;
     padding-bottom: 16px;
     margin-bottom: 24px;
+    position: relative; /* สำหรับจัดตำแหน่ง */
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -520,23 +590,54 @@ button.danger {
     gap: 12px;
 }
 
+/* ปรับปรุงปุ่มปิด */
 .close-btn {
     background: #e8f5e9;
     color: #2d7a2d;
-    border-radius: 60px;
-    padding: clamp(6px, 1.5vw, 8px) clamp(12px, 3vw, 16px);
-    box-shadow: none;
-    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    border: none;
+    border-radius: 50%; /* ให้เป็นวงกลม */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
 
 .close-btn:hover {
     background: #c8e6c9;
-    transform: scale(1.02);
+    transform: rotate(90deg) scale(1.1); /* เพิ่มลูกเล่นตอน hover */
+    color: #c62828;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
+.close-btn:active {
+    transform: scale(0.95);
+}
 
-
-
+/* เพิ่มส่วนรองรับหน้าจอมือถือให้ปุ่มชัดเจนขึ้น */
+@media (max-width: 640px) {
+    .modal-header {
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+    .modal-header h2 {
+        font-size: clamp(1.1rem, 4.5vw, 1.4rem);
+    }
+    .close-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+}
+/* ================================================================
+   11.0 ฟอร์มจัดการผู้ใช้ (User Management Form)
+   ================================================================ */
 .user-management-form {
     background: #f1f8e9;
     border-radius: 24px;
@@ -549,6 +650,7 @@ button.danger {
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 12px;
+    align-items: center;
 }
 
 .input-row input,
@@ -571,13 +673,15 @@ button.danger {
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
-
-
-
+/* ================================================================
+   12.0 ระบบล็อกอิน (Login Overlay)
+   ================================================================ */
 .login-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: radial-gradient(circle at 30% 10%, #2d7a2d, #1a4a1a, #0d2a0d);
     backdrop-filter: blur(4px);
     display: flex;
@@ -589,7 +693,7 @@ button.danger {
 .login-box {
     background: rgba(255, 255, 255, 0.98);
     border-radius: 48px;
-    box-shadow: 0 30px 55px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+    box-shadow: 0 30px 55px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2);
     padding: clamp(30px, 6vw, 50px) clamp(25px, 5vw, 45px);
     width: 90%;
     max-width: 450px;
@@ -597,8 +701,14 @@ button.danger {
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(40px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .login-icon-bg {
@@ -712,7 +822,9 @@ input[type="password"]:focus {
     transition: 0.2s;
 }
 
-.toggle-password:hover { opacity: 1; }
+.toggle-password:hover {
+    opacity: 1;
+}
 
 .remember-group {
     margin: 10px 0 15px 0;
@@ -723,20 +835,29 @@ input[type="password"]:focus {
 .custom-checkbox {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
-    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-    font-weight: 600;
-    color: #ffffff;
-    background: #2196f3;
-    padding: clamp(6px, 1.5vw, 8px) clamp(10px, 2.5vw, 12px);
-    border-radius: 6px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    color: #e2e8f0;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
 }
 
+.custom-checkbox input[type="checkbox"] {
+    margin: 0;
+    width: 18px;
+    height: 25px;
+    flex-shrink: 0;
+}
 
+.custom-checkbox span {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+}
 
-
+/* ================================================================
+   13.0 ตารางผู้ใช้ (User Table)
+   ================================================================ */
 .user-table-wrapper,
 .device-table-wrapper {
     width: 100%;
@@ -792,7 +913,9 @@ input[type="password"]:focus {
     background-color: #ffffff;
 }
 
-
+/* ================================================================
+   14.0 ตารางอุปกรณ์ (Device Table)
+   ================================================================ */
 .device-table {
     width: 100%;
     min-width: 1100px;
@@ -855,7 +978,7 @@ input[type="password"]:focus {
     transition: all 0.2s ease;
     border: none;
     margin: 2px 4px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .device-table .edit-btn {
@@ -877,9 +1000,6 @@ input[type="password"]:focus {
     background: #b91c1c;
     transform: translateY(-1px);
 }
-
-
-
 
 .device-table .level-badge {
     padding: clamp(2px, 1vw, 4px) clamp(6px, 2vw, 10px);
@@ -904,6 +1024,9 @@ input[type="password"]:focus {
     color: #b71c1c;
 }
 
+/* ================================================================
+   15.0 ระดับน้ำและสถานะ (Water Level & Status)
+   ================================================================ */
 .flood-status-critical {
     background: #c62828;
     color: white;
@@ -915,9 +1038,18 @@ input[type="password"]:focus {
 }
 
 @keyframes blinkRed {
-    0% { opacity: 1; background: #c62828; }
-    50% { opacity: 0.7; background: #b71c1c; }
-    100% { opacity: 1; background: #c62828; }
+    0% {
+        opacity: 1;
+        background: #c62828;
+    }
+    50% {
+        opacity: 0.7;
+        background: #b71c1c;
+    }
+    100% {
+        opacity: 1;
+        background: #c62828;
+    }
 }
 
 .flood-status-warning {
@@ -949,13 +1081,16 @@ input[type="password"]:focus {
 }
 
 @keyframes waterWave {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0);
+    }
 }
-
-
-
 
 .sensor-levels {
     display: flex;
@@ -982,19 +1117,27 @@ input[type="password"]:focus {
     display: inline-block;
 }
 
-.sensor-levels .level-item .level-dot.bank-dot { background: #f57c00; }
-.sensor-levels .level-item .level-dot.bottom-dot { background: #1976d2; }
-.sensor-levels .level-item .level-dot.warning-dot { background: #c62828; }
+.sensor-levels .level-item .level-dot.bank-dot {
+    background: #f57c00;
+}
 
+.sensor-levels .level-item .level-dot.bottom-dot {
+    background: #1976d2;
+}
 
+.sensor-levels .level-item .level-dot.warning-dot {
+    background: #c62828;
+}
 
-
+/* ================================================================
+   16.0 สรุปสถานะ (Status Summary Container)
+   ================================================================ */
 .status-summary-container {
     margin-top: 30px;
     background: #1e293b;
     padding: clamp(16px, 4vw, 20px);
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .status-summary-container h3 {
@@ -1029,9 +1172,9 @@ input[type="password"]:focus {
     text-align: center;
 }
 
-
-
-
+/* ================================================================
+   17.0 ปุ่มสลับและแจ้งเตือน (Toggle & Alert Buttons)
+   ================================================================ */
 .toggle-alert-btn {
     background: #ef4444;
     color: white;
@@ -1042,7 +1185,7 @@ input[type="password"]:focus {
     font-weight: bold;
     font-size: clamp(0.55rem, 2vw, 0.75rem);
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-alert-btn:hover {
@@ -1073,9 +1216,9 @@ input[type="password"]:focus {
     border-color: #64748b;
 }
 
-
-
-
+/* ================================================================
+   18.0 การตั้งค่าระดับแบบอินไลน์ (Level Config Inline)
+   ================================================================ */
 .level-config-inline {
     background: #0f172a;
     padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px);
@@ -1202,9 +1345,9 @@ input[type="password"]:focus {
     font-size: clamp(0.45rem, 1.5vw, 0.6rem);
 }
 
-
-
-
+/* ================================================================
+   19.0 แบดจ์ระดับแบบกำหนดเอง (Custom Level Badges)
+   ================================================================ */
 .device-table .level-badge-custom {
     display: inline-block;
     padding: clamp(1px, 0.5vw, 1px) clamp(4px, 1.5vw, 6px);
@@ -1215,28 +1358,29 @@ input[type="password"]:focus {
     color: white;
 }
 
-.device-table .level-badge-custom.level-very_high { background: #ef4444; }
-.device-table .level-badge-custom.level-high { background: #f59e0b; }
-.device-table .level-badge-custom.level-normal { background: #10b981; }
-.device-table .level-badge-custom.level-low { background: #3b82f6; }
-.device-table .level-badge-custom.level-very_low { background: #6366f1; }
-
-
-
-
-@keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
+.device-table .level-badge-custom.level-very_high {
+    background: #ef4444;
 }
 
-.alert-panel-blink {
-    animation: blink 1.5s infinite;
+.device-table .level-badge-custom.level-high {
+    background: #f59e0b;
 }
 
+.device-table .level-badge-custom.level-normal {
+    background: #10b981;
+}
 
+.device-table .level-badge-custom.level-low {
+    background: #3b82f6;
+}
 
+.device-table .level-badge-custom.level-very_low {
+    background: #6366f1;
+}
 
+/* ================================================================
+   20.0 แถบเลื่อน (Scrollbar)
+   ================================================================ */
 ::-webkit-scrollbar {
     width: clamp(6px, 1.5vw, 8px);
     height: clamp(6px, 1.5vw, 8px);
@@ -1252,25 +1396,25 @@ input[type="password"]:focus {
     background: #2d7a2d;
 }
 
-
-
-
+/* ================================================================
+   21.0 Responsive (Media Queries)
+   ================================================================ */
 @media (max-width: 640px) {
     body {
         padding: 12px;
     }
-    
+
     .container {
         padding-bottom: 90px;
     }
-    
+
     .status-bar {
         flex-direction: column;
         align-items: stretch;
         border-radius: 28px;
         text-align: center;
     }
-    
+
     .user-info {
         position: relative;
         top: auto;
@@ -1281,69 +1425,91 @@ input[type="password"]:focus {
         background: rgba(45, 122, 45, 0.92);
         border-radius: 40px;
     }
-    
+
     .user-info-left {
         flex-wrap: wrap;
         gap: 8px;
     }
-    
+
     .online-users-compact {
         padding: 4px 10px;
     }
-    
+
     .controls button {
         flex: 1;
         justify-content: center;
     }
-    
+
     .modal-content {
         padding: 20px;
         width: 98%;
     }
-    
+
     .input-row {
         flex-direction: column;
     }
-    
+
     .input-row input,
     .input-row select {
         width: 100%;
     }
-    
+
     .compact-users-list {
         right: auto;
         left: 0;
         min-width: 200px;
     }
-    
+
     .level-config-inline .levels-grid-inline {
         grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     }
-    
+
     .level-config-inline .level-item-inline .level-inputs input[type="number"] {
         width: 38px;
     }
-    
+
     .level-config-inline #boundaryInputsContainer input[type="number"] {
         width: 40px;
     }
-    
+
     footer {
         font-size: clamp(0.55rem, 2vw, 0.7rem);
         padding: 10px 0;
     }
-    
+
     footer .footer-content {
         padding: clamp(6px, 1.5vw, 8px) clamp(12px, 3vw, 16px);
         gap: 6px;
     }
-    
+
     footer .copyright-text {
         font-size: clamp(0.55rem, 2vw, 0.65rem);
     }
-    
+
     footer .copyright-icon {
         font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    }
+
+    /* Alert Enabled Wrapper Responsive */
+    .alert-row-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .alert-row-container .button-group {
+        margin-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .alert-enabled-wrapper {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #saveSensorBtn,
+    .btn-small-reset {
+        flex: 1;
+        justify-content: center;
     }
 }
 
@@ -1351,29 +1517,101 @@ input[type="password"]:focus {
     .level-config-inline .levels-grid-inline {
         grid-template-columns: 1fr 1fr;
     }
-    
+
     .level-config-inline .level-item-inline {
         padding: 6px 8px;
     }
 }
 
-
-
-
-.role-hidden {
-    display: none !important;
+/* ================================================================
+   22.0 ส่วนช่วยเหลือ (Help Section)
+   ================================================================ */
+.help-section details {
+    background: #1e293b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    transition: border-color 0.2s;
 }
 
-.device-table td[data-label="หน่วยวัด"] {
-    background: #f1f5f9;
-    color: #475569;
+.help-section details:hover {
+    border-color: #3b82f6;
+}
+
+.help-section summary {
+    cursor: pointer;
     font-weight: bold;
-    border-radius: 4px;
+    color: #3b82f6;
+    outline: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+.help-section summary::-webkit-details-marker {
+    display: none;
+}
 
+.help-section summary::before {
+    content: '▶';
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
 
+.help-section details[open] summary::before {
+    content: '▼';
+}
 
+.help-section .help-content {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    padding-left: 6px;
+    border-top: 1px solid #334155;
+    padding-top: 12px;
+}
+
+.help-section .help-content p {
+    margin-bottom: 6px;
+}
+
+.help-section .help-content code {
+    background: #0f172a;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #f59e0b;
+    font-size: 0.75rem;
+}
+
+.help-section .help-content .highlight-warn {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.help-section .help-content .highlight-adv {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+.help-section .help-content .highlight-new {
+    color: #3b82f6;
+}
+
+.help-section .help-content .tip-box {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #0f172a;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* ================================================================
+   23.0 ฟุตเตอร์ (Footer)
+   ================================================================ */
 footer {
     position: fixed;
     bottom: 0;
@@ -1422,50 +1660,121 @@ footer .footer-content:hover {
     transition: all 0.3s ease;
 }
 
-.input-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    gap: 15px; 
+/* ================================================================
+   24.0 คลาสเสริมและยูทิลิตี้ (Utilities)
+   ================================================================ */
+.role-hidden {
+    display: none !important;
 }
 
+.device-table td[data-label="หน่วยวัด"] {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: bold;
+    border-radius: 4px;
+}
 
-.custom-checkbox {
-    display: flex;
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.alert-panel-blink {
+    animation: blink 1.5s infinite;
+}
+
+/* Alert Enabled Wrapper - ปรับขนาดให้เท่ากับปุ่มบันทึก */
+.alert-enabled-wrapper {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    height: 48px;
+    min-width: 200px;
     cursor: pointer;
-    color: #e2e8f0;
-    margin-right: auto; 
-    white-space: nowrap;
-    gap: 8px; 
+    transition: all 0.2s ease;
 }
 
-.custom-checkbox input[type="checkbox"] {
-    margin: 0; 
+.alert-enabled-wrapper:hover {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #1a2a3a, #0f1a2a);
+}
+
+.alert-enabled-wrapper input[type="checkbox"] {
     width: 18px;
     height: 18px;
-}
-
-.custom-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 6px;  
+    margin: 0;
     cursor: pointer;
-    color: #e2e8f0;
-    white-space: nowrap;
-    margin: 0;
-    padding: 0;
-}
-
-.custom-checkbox input[type="checkbox"] {
-    margin: 0;
-    width: 18px;
-    height: 25px;
+    accent-color: #10b981;
     flex-shrink: 0;
 }
 
-.custom-checkbox span {
-    font-size: 0.85rem;
+.alert-enabled-wrapper .alert-label {
     color: #e2e8f0;
-}}}
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.alert-enabled-wrapper .alert-label .alert-icon {
+    font-size: 1rem;
+}
+
+.alert-row-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding: 8px 0;
+}
+
+.alert-row-container .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+#saveSensorBtn {
+    height: 48px;
+    padding: 10px 24px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-small-reset {
+    height: 48px;
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    background: #64748b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-small-reset:hover {
+    background: #475569;
+}
