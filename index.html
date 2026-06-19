@@ -59,6 +59,121 @@
             console.error("❌ Firebase initialization error:", error);
         }
     </script>
+
+    <!-- เพิ่ม CSS ปรับแต่งแถบ Alert Enabled ให้ตรงกับปุ่มบันทึก -->
+    <style>
+        /* 🔹 ปรับแต่ง container ของ alert enabled ให้เท่ากับปุ่มบันทึก */
+        .alert-enabled-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            height: 48px; /* ความสูงเท่ากับปุ่มบันทึก */
+            min-width: 200px; /* ความกว้างพอกับปุ่ม */
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .alert-enabled-wrapper:hover {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #1a2a3a, #0f1a2a);
+        }
+
+        .alert-enabled-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            accent-color: #10b981;
+            flex-shrink: 0;
+        }
+
+        .alert-enabled-wrapper .alert-label {
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-enabled-wrapper .alert-label .alert-icon {
+            font-size: 1rem;
+        }
+
+        /* ปรับ container หลักให้จัดตำแหน่งได้ดี */
+        .alert-row-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            padding: 8px 0;
+        }
+
+        .alert-row-container .button-group {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* ปุ่มบันทึกเซนเซอร์ - ปรับขนาดให้พอดี */
+        #saveSensorBtn {
+            height: 48px;
+            padding: 10px 24px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-small-reset {
+            height: 48px;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-small-reset:hover {
+            background: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .alert-row-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .alert-row-container .button-group {
+                margin-left: 0;
+                flex-wrap: wrap;
+            }
+            .alert-enabled-wrapper {
+                width: 100%;
+                justify-content: center;
+            }
+            #saveSensorBtn,
+            .btn-small-reset {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -317,9 +432,12 @@
             <!-- ========================================================== -->
             <section id="boardSection" style="margin-bottom: 40px;">
                 <h3 style="color: #1a3a5f;">🔌 จัดการบอร์ด ESP32</h3>
-                <button onclick="startProvisioningProcess()" class="save-btn" style="background: linear-gradient(135deg, #4CAF50, #388E3C);">
-                    ➕ ค้นหาและติดตั้งบอร์ดใหม่ (USB)
-                </button>
+<button onclick="startProvisioningProcess()" class="save-btn" 
+        style="background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+               padding: 10px 24px; border: none; border-radius: 8px; 
+               color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+    💾 ติดตั้งและบันทึกบอร์ดใหม่
+</button>
                 <div style="margin-top: 10px; margin-bottom: 10px;">
                     <input type="text" id="searchBoard" onkeyup="filterBoardTable()" placeholder="🔍 ค้นหาบอร์ด..." style="padding: 8px 16px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; width: 100%; max-width: 300px;">
                 </div>
@@ -505,30 +623,52 @@
                         </div>
                     </div>
                     
-                    <!-- Checkbox ปิด/เปิดการแจ้งเตือน (Alert Enabled) -->
-                    <div class="input-row" style="margin-top: 10px;">
-                        <label class="custom-checkbox" style="display: flex; align-items: center; cursor: pointer; color: #e2e8f0;">
+                    <!-- ========================================================== -->
+                    <!-- 🔹 แถว Alert Enabled + ปุ่ม (ปรับขนาดให้เท่ากัน)              -->
+                    <!-- ========================================================== -->
+                    <div class="alert-row-container">
+                        <!-- Alert Enabled - ปรับให้มีขนาดเท่ากับปุ่มบันทึก -->
+                        <label class="alert-enabled-wrapper" id="alertEnabledWrapper">
                             <input type="checkbox" id="devAlertEnabled" checked>
-                            <span class="checkmark" style="margin-right: 8px;"></span> เปิดใช้งานการแจ้งเตือน (Alert Enabled)
+                            <span class="alert-label">
+                                <span class="alert-icon">🔔</span>
+                                เปิดใช้งานการแจ้งเตือน (Alert Enabled)
+                            </span>
                         </label>
-                        
-                        <div style="flex:1; display: flex; justify-content: flex-end; gap: 10px;">
-                            <button onclick="resetDeviceForm()" class="btn-small" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">↺ รีเซ็ตฟอร์ม</button>
-                            <button onclick="saveDeviceWithThresholds()" class="save-btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 8px 24px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold;">
-                                💾 บันทึก
+
+                        <div class="button-group">
+                            <button onclick="resetDeviceForm()" class="btn-small-reset">
+                                ↺ รีเซ็ตฟอร์ม
+                            </button>
+                            <button id="saveSensorBtn" onclick="saveDeviceWithThresholds()" class="save-btn" 
+                                    style="background: linear-gradient(135deg, #10b981, #059669);">
+                                💾 บันทึกข้อมูลเซนเซอร์
                             </button>
                         </div>
                     </div>
                     
-                    <p style="font-size:0.75rem; color:#64748b; margin-top: 10px;">
-                        * ID ต้องเป็นภาษาอังกฤษ ตัวเลข หรือขีดล่าง ห้ามมีเว้นวรรค (ใช้สำหรับอ้างอิงในโค้ดบอร์ด ESP32)
-                        <br>* ตั้งค่าระดับการแจ้งเตือน 5 ระดับ: มากที่สุด, มาก, ปานกลาง, น้อย, น้อยที่สุด
-                        <br>* ระบบจะแจ้งเตือนเมื่อค่าอยู่ในระดับ "มาก" หรือ "มากที่สุด"
-                        <br>* Checkbox "เปิดใช้งานการแจ้งเตือน": ถ้ายกเลิกเลือก ระบบจะไม่ส่งการแจ้งเตือนสำหรับอุปกรณ์นี้
-                        <br>* Advanced Alert: ระบบจะแจ้งเตือนตามเงื่อนไขที่กำหนดเพิ่มเติม
-                        <br>* ค่าวิกฤตและอัตราการเปลี่ยนแปลง: ระบบจะแสดงในตารางและใช้เป็นเงื่อนไขแจ้งเตือน
-                        <br>* <span style="color: #3b82f6;">🆕 รองรับค่าจริง: ไม่จำกัดแค่ 0-100% (ใช้ได้กับอุณหภูมิ, pH, ระดับน้ำ cm)</span>
-                    </p>
+<p style="font-size:0.75rem; color:#94a3b8; margin-top: 10px; line-height: 1.6;">
+    <span style="display: block; margin-bottom: 4px;">📌 <strong>ข้อกำหนด ID:</strong> ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข และขีดล่าง (<code>_</code>) เท่านั้น ห้ามมีช่องว่าง (ใช้สำหรับอ้างอิงในโค้ดบอร์ด ESP32)</span>
+    
+    <span style="display: block; margin-bottom: 4px;">📊 <strong>การตั้งค่าระดับแจ้งเตือน 5 ระดับ:</strong> มากที่สุด (&gt;= 90), มาก (70-89), ปานกลาง (40-69), น้อย (20-39), น้อยที่สุด (0-19) — สามารถปรับค่า Min/Max ได้ตามต้องการ</span>
+    
+    <span style="display: block; margin-bottom: 4px;">🔔 <strong>เงื่อนไขการแจ้งเตือน:</strong> ระบบจะส่งการแจ้งเตือนเมื่อค่าที่วัดได้อยู่ในระดับ <span style="color: #ef4444; font-weight: bold;">"มาก" (70-89)</span> หรือ <span style="color: #ef4444; font-weight: bold;">"มากที่สุด" (≥ 90)</span> เท่านั้น</span>
+    
+    <span style="display: block; margin-bottom: 4px;">🔕 <strong>ปิด/เปิดการแจ้งเตือน:</strong> หากยกเลิกเลือกช่อง "เปิดใช้งานการแจ้งเตือน" ระบบจะหยุดส่งการแจ้งเตือนทั้งหมดสำหรับอุปกรณ์นี้ (รวมทั้งการแจ้งเตือนตามระดับและ Advanced Alert)</span>
+    
+    <span style="display: block; margin-bottom: 4px;">⚙️ <strong>Advanced Alert (เงื่อนไขเพิ่มเติม):</strong> ระบบจะตรวจสอบเงื่อนไขพิเศษ 2 แบบควบคู่ไปด้วย ได้แก่ 
+        <span style="color: #f59e0b;">① ค่าวิกฤต (Threshold)</span> — แจ้งเมื่อค่า ≥ ค่าที่กำหนด 
+        <span style="color: #f59e0b;">② อัตราการเปลี่ยนแปลง (Rate of Change)</span> — แจ้งเมื่อค่าเพิ่มขึ้นเกินอัตราที่กำหนดภายในเวลาที่ตั้งไว้
+    </span>
+    
+    <span style="display: block; margin-bottom: 4px;">📈 <strong>การแสดงผลในตาราง:</strong> ค่าวิกฤตและอัตราการเปลี่ยนแปลงที่ตั้งไว้จะแสดงในตารางจัดการเซนเซอร์ และใช้เป็นเงื่อนไขในการแจ้งเตือนตามระบบ Advanced Alert</span>
+    
+    <span style="display: block; margin-bottom: 4px; color: #3b82f6;">🆕 <strong>รองรับค่าจริง:</strong> ระบบรองรับการทำงานกับค่าจริง (<span style="color: #10b981;">ไม่จำกัดแค่ 0-100%</span>) เช่น อุณหภูมิ (-10 ถึง 50°C), pH (0-14), ระดับน้ำ (0-999 cm), ความเข้มแสง (Lux), ฯลฯ</span>
+    
+    <span style="display: block; margin-top: 6px; padding: 6px 10px; background: #1e293b; border-radius: 4px; border-left: 3px solid #3b82f6; font-size: 0.7rem; color: #94a3b8;">
+        💡 <strong>เคล็ดลับ:</strong> ใช้ปุ่ม <span style="color: #3b82f6;">"⚡ สร้าง 5 ระดับ"</span> เพื่อสร้างค่าระดับอัตโนมัติจาก Min/Max หรือใช้ <span style="color: #10b981;">"🌊 River Mode"</span> สำหรับเซนเซอร์ Ultrasonic ที่วัดระดับน้ำโดยตรง
+    </span>
+</p>
                 </div>
 
                 <!-- ช่องค้นหาเซนเซอร์ -->

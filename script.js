@@ -613,17 +613,17 @@ function resetDeviceForm() {
     
     renderLevelConfigInline(null);
     
-    const saveBtn = document.querySelector('#deviceModal .save-btn');
+    // 🔹 เปลี่ยนจากการใช้ querySelector เป็น getElementById
+    const saveBtn = document.getElementById('saveSensorBtn'); // เปลี่ยนตรงนี้
     if (saveBtn) {
-        saveBtn.textContent = '💾 บันทึก';
-        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds()');
+        saveBtn.textContent = '💾 บันทึกข้อมูลเซนเซอร์'; // เปลี่ยนข้อความ
+        saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds(false)');
     }
     
     const modeSelect = document.getElementById('levelModeSelect');
     if (modeSelect) modeSelect.value = 'manual';
     toggleLevelMode();
 }
-
 // 🔹 8.6: handleEditClick
 window.handleEditClick = function(id) {
     const config = deviceConfigs[id];
@@ -3365,9 +3365,10 @@ window.loadDeviceForEditWithThresholds = function(id, name, type, unit, levels, 
     if (modeSelect) modeSelect.value = 'manual';
     toggleLevelMode();
     
-    const saveBtn = document.querySelector('#deviceModal .save-btn');
+    // 🔹 เปลี่ยนการใช้ querySelector เป็น getElementById
+    const saveBtn = document.getElementById('saveSensorBtn'); // เปลี่ยนตรงนี้
     if (saveBtn) {
-        saveBtn.textContent = '💾 อัปเดตข้อมูล';
+        saveBtn.textContent = '💾 อัปเดตข้อมูลเซนเซอร์'; // เปลี่ยนข้อความ
         saveBtn.setAttribute('onclick', 'saveDeviceWithThresholds(true)');
     }
     
@@ -3380,7 +3381,6 @@ window.loadDeviceForEditWithThresholds = function(id, name, type, unit, levels, 
     renderBoardTable();
     updateAlertHistoryDropdown();
 };
-
 // 🔹 29.4: resetSaveButtonState - รีเซ็ตสถานะปุ่มบันทึก
 function resetSaveButtonState() {
     const saveBtn = document.querySelector('#deviceModal .save-btn');
