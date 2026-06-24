@@ -1,0 +1,73 @@
+
+สาเหตุที่ระบบแสดงสถานะ Offline หลังจากผ่านไปประมาณ 5 นาที ทั้งที่ ESP32 ยังทำงานอยู่ เกิดจาก "ความไม่ซิงค์กัน (Sync Conflict)" ระหว่างเว็บและบอร์ดครับ
+สาเหตุหลัก:
+C++ (ESP32): ส่งค่า lastSeen ไปทุก 20 วินาที แต่ ไม่ได้ส่งคำว่า status: "online" กลับไปซ้ำในลูป (ส่งแค่ครั้งแรกตอนเริ่ม)
+Javascript (Web): มีระบบ monitorDeviceHealth ที่คอยตรวจสอบว่าถ้า lastSeen เกิน 5 นาที ให้เขียนทับลงฐานข้อมูลเป็น status: "offline"
+ปัญหา: เมื่อเว็บสั่งบอร์ดเป็น "offline" แล้ว ตัวบอร์ด ESP32 ในโค้ดเดิมจะอัปเดตแค่เวลา lastSeen แต่ไม่ได้สั่งเปลี่ยน "offline" ให้กลับเป็น "online" อีกครั้ง สถานะในหน้าจอจึงค้างเป็นสีแดง
+วิธีแก้ไขที่ 1: ปรับโค้ด C++ (สำคัญที่สุด)
+แก้ลูป Heartbeat ให้ส่งสถานะ online เข้าไปยืนยันทุกรอบ เพื่อแก้ไขกรณีที่เว็บสั่ง Offline ไปก่อนหน้านี้ครับ
+ในไฟล์ 01.cpp ส่วนของ loop() แก้ไขดังนี้:
+code
+C++
+// --- 1. ระบบ Heartbeat (แก้ไขให้ส่ง status "online" ทุกรอบ) ---
+if (isFirstConnection) {
+    // ... โค้ดเดิมในส่วน isFirstConnection ...
+} 
+else if (millis() - sendDataPrevMillis > 20000 || sendDataPrevMillis == 0) {
+    sendDataPrevMillis = millis();
+    
+    FirebaseJson json;
+    json.set("status", "online"); // <--- เพิ่มบรรทัดนี้!! เพื่อให้สถานะเด้งกลับมาเขียวเสมอ
+    json.set("lastSeen/.sv", "timestamp");
+    json.set("wifi_rssi", WiFi.RSSI());
+    
+    // ตรวจสอบว่า ID ตรงกับที่ตั้งในเว็บ (เช่น esp32_node_01)
+    if (Firebase.RTDB.updateNode(&fbdo, "/device_configs/esp32_node_01", &json)) {
+        Serial.print("🟢 Heartbeat & Online Status Sent");
+    }
+}
+วิธีแก้ไขที่ 2: ปรับค่าหน่วงเวลาใน script.js
+ในไฟล์ script.js มีตัวแปรชื่อ THROTTLE_INTERVAL ซึ่งถ้าค่านี้สูงเกินไป เว็บจะปฏิเสธการอัปเดตสถานะที่บอร์ดส่งมาบ่อยๆ ครับ
+ค้นหาและแก้ไขส่วนนี้ใน script.js:
+ค้นหาฟังก์ชัน updateDeviceLastSeen
+แก้ไขบรรทัด const THROTTLE_INTERVAL = ... ให้ลดลงเหลือสัก 10-15 วินาที เพื่อให้เว็บยอมรับค่าบ่อยขึ้น
+code
+JavaScript
+async function updateDeviceLastSeen(id) {
+    if (!window.db || !id) return;
+
+    const now = Date.now();
+    const THROTTLE_INTERVAL = 15000; // ปรับลดลงเหลือ 15 วินาที (เดิมอาจจะเป็น 30-40)
+
+    if (lastUpdateTracker[id] && (now - lastUpdateTracker[id] < THROTTLE_INTERVAL)) {
+        return;
+    }
+    // ... โค้ดส่วนที่เหลือ ...
+}
+วิธีแก้ไขที่ 3: ปรับเวลาตรวจสอบสุขภาพ (Health Monitor)
+ให้เว็บรอสัญญานานขึ้นอีกนิดก่อนจะตัดสินว่าบอร์ดตาย (Offline)
+ในไฟล์ script.js ฟังก์ชัน monitorDeviceHealth:
+แก้จาก 300,000 ms (5 นาที) เป็น 420,000 ms (7 นาที) เพื่อให้มีระยะปลอดภัย (Margin) มากกว่าความถี่ที่ ESP32 ส่งมา
+code
+JavaScript
+async function monitorDeviceHealth() {
+    const now = Date.now() + serverTimeOffset;
+    // ...
+    for (const [id, config] of Object.entries(devices)) {
+        if (config.enabled === false) continue;
+
+        const lastSeenTime = getTimestampMs(config.lastSeen);
+        // แก้ไขบรรทัดล่างนี้: เปลี่ยนจาก 300000 เป็น 420000 (7 นาที)
+        const isActuallyOffline = (now - lastSeenTime) > 420000; 
+
+        if (isActuallyOffline) {
+            // ... สั่ง offline ...
+        }
+    }
+}
+สรุปขั้นตอนการแก้ไข:
+แก้ไฟล์ 01.cpp เพิ่ม json.set("status", "online"); ในลูป Heartbeat แล้ว Upload ลง ESP32 ใหม่
+แก้ไฟล์ script.js ปรับเวลา THROTTLE_INTERVAL เป็น 15000 และปรับ monitorDeviceHealth เป็น 420000
+กด Ctrl + F5 ที่หน้าเว็บเพื่อล้างแคชและโหลด JavaScript ตัวใหม่
+ทำไมถึงออนไลน์ไม่ถึง 5 นาที?
+เพราะในโค้ดเดิม เมื่อเว็บตรวจไม่เจอสัญญานเพียงเสี้ยววินาทีที่เกิน 5 นาที มันจะสั่ง status: "offline" ลง Database ทันที และ ESP32 ตัวเดิมไม่ได้ส่งคำสั่ง online กลับไปแก้ (ส่งแค่เวลา) หน้าจอจึงแดงค้างครับ การแก้ตามด้านบนจะทำให้ ESP32 ส่งคำสั่ง "ยืนยันการออนไลน์" กลับไปทุกๆ 20 วินาทีครับ

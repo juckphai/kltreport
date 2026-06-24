@@ -1,37 +1,4 @@
-/* ================================================================
-   🎨 STYLE.CSS - ระบบจัดการและรายงานโครงการ (น้องโค้ก)
-   ================================================================
-   📋 สารบัญ
-   ----------------------------------------------------------------
-   1.0  ระบบฐาน (Global Reset & Body)
-   2.0  ระบบพื้นหลัง (Background & Effects)
-   3.0  โครงสร้างหลัก (Container, Header)
-   4.0  แถบสถานะ (Status Bar)
-   5.0  ข้อมูลผู้ใช้ (User Info Bar)
-   6.0  ผู้ใช้ออนไลน์ (Online Users Compact)
-   7.0  การ์ดเซนเซอร์ (Sensor Grid & Cards)
-   8.0  กราฟ (Chart Container)
-   9.0  ปุ่มควบคุม (Controls & Buttons)
-   10.0 Modal พื้นฐาน (Modal Overlay & Content)
-   11.0 ฟอร์มจัดการผู้ใช้ (User Management Form)
-   12.0 ระบบล็อกอิน (Login Overlay)
-   13.0 ตารางผู้ใช้ (User Table)
-   14.0 ตารางอุปกรณ์ (Device Table)
-   15.0 ระดับน้ำและสถานะ (Water Level & Status)
-   16.0 สรุปสถานะ (Status Summary Container)
-   17.0 ปุ่มสลับและแจ้งเตือน (Toggle & Alert Buttons)
-   18.0 การตั้งค่าระดับแบบอินไลน์ (Level Config Inline)
-   19.0 แบดจ์ระดับแบบกำหนดเอง (Custom Level Badges)
-   20.0 แถบเลื่อน (Scrollbar)
-   21.0 Responsive (Media Queries)
-   22.0 ส่วนช่วยเหลือ (Help Section)
-   23.0 ฟุตเตอร์ (Footer)
-   24.0 คลาสเสริมและยูทิลิตี้ (Utilities)
-   ================================================================ */
 
-/* ================================================================
-   1.0 ระบบฐาน (Global Reset & Body)
-   ================================================================ */
 * {
     margin: 0;
     padding: 0;
@@ -46,11 +13,14 @@ body {
     position: relative;
     font-size: clamp(0.875rem, 2.5vw, 1rem);
     line-height: 1.6;
+
+    
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-/* ================================================================
-   2.0 ระบบพื้นหลัง (Background & Effects)
-   ================================================================ */
+
 body::before {
     content: '';
     position: fixed;
@@ -64,9 +34,7 @@ body::before {
     pointer-events: none;
 }
 
-/* ================================================================
-   3.0 โครงสร้างหลัก (Container, Header)
-   ================================================================ */
+
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -79,12 +47,13 @@ body::before {
     margin-bottom: clamp(16px, 4vh, 30px);
 }
 
+
 .project-header h1 {
     color: #1a3a2a;
     text-align: center;
     font-size: clamp(1.4rem, 6vw, 2.2rem);
     font-weight: 700;
-    text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.3);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); 
     background: linear-gradient(135deg, #1a3a2a, #2d5a3a, #3d7a4a);
     background-clip: text;
     -webkit-background-clip: text;
@@ -96,7 +65,7 @@ body::before {
 
 #editTitleBtn {
     background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px); 
     border-radius: 50%;
     width: clamp(38px, 5vw, 44px);
     height: clamp(38px, 5vw, 44px);
@@ -114,12 +83,10 @@ body::before {
     transform: rotate(15deg) scale(1.05);
 }
 
-/* ================================================================
-   4.0 แถบสถานะ (Status Bar)
-   ================================================================ */
+
 .status-bar {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.6); 
+    backdrop-filter: blur(4px); 
     padding: clamp(12px, 2vh, 16px) clamp(15px, 4vw, 25px);
     border-radius: 60px;
     margin-bottom: 20px;
@@ -165,16 +132,14 @@ body::before {
 
 .sync-status {
     font-weight: bold;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4); 
     padding: clamp(4px, 1.5vw, 6px) clamp(10px, 2.5vw, 14px);
     border-radius: 40px;
     font-size: clamp(0.7rem, 2.5vw, 0.9rem);
     color: #1a3a2a;
 }
 
-/* ================================================================
-   5.0 ข้อมูลผู้ใช้ (User Info Bar)
-   ================================================================ */
+
 .user-info {
     position: fixed;
     top: 16px;
@@ -182,8 +147,8 @@ body::before {
     display: flex;
     align-items: center;
     gap: clamp(8px, 2vw, 16px);
-    background: rgba(45, 122, 45, 0.88);
-    backdrop-filter: blur(16px);
+    background: rgba(45, 122, 45, 0.92); 
+    backdrop-filter: blur(4px); 
     padding: clamp(6px, 1.5vw, 8px) clamp(12px, 3vw, 20px) clamp(6px, 1.5vw, 8px) clamp(10px, 2.5vw, 16px);
     border-radius: 60px;
     z-index: 1000;
@@ -230,9 +195,7 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* ================================================================
-   6.0 ผู้ใช้ออนไลน์ (Online Users Compact)
-   ================================================================ */
+
 .online-users-compact {
     display: flex;
     align-items: center;
@@ -275,13 +238,14 @@ body::before {
     white-space: nowrap;
 }
 
+
 .compact-users-list {
     position: absolute;
     top: 100%;
     right: 0;
     margin-top: 8px;
-    background: rgba(45, 122, 45, 0.95);
-    backdrop-filter: blur(12px);
+    background: rgba(45, 122, 45, 0.95); 
+    backdrop-filter: blur(4px); 
     border-radius: 20px;
     padding: 10px 0;
     min-width: clamp(150px, 30vw, 180px);
@@ -337,9 +301,7 @@ body::before {
     margin-bottom: 5px;
 }
 
-/* ================================================================
-   7.0 การ์ดเซนเซอร์ (Sensor Grid & Cards)
-   ================================================================ */
+
 .sensor-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -366,6 +328,23 @@ body::before {
     width: 100%;
     height: clamp(4px, 1vw, 6px);
     background: linear-gradient(90deg, #4CAF50, #66BB6A, #81C784);
+}
+
+
+.disabled-card {
+    opacity: 0.6;
+    filter: grayscale(1);
+    border: 2px dashed #64748b;
+}
+
+.disabled-card .sensor-value {
+    color: #94a3b8 !important;
+}
+.disabled-card .sensor-unit {
+    color: #64748b !important;
+}
+.disabled-card .timestamp {
+    color: #64748b !important;
 }
 
 .sensor-card.flood-alert::before {
@@ -424,6 +403,7 @@ body::before {
     display: inline-block;
 }
 
+
 .alert-badge {
     padding: clamp(2px, 1vw, 4px) clamp(8px, 2.5vw, 12px);
     border-radius: 20px;
@@ -434,18 +414,19 @@ body::before {
     animation: alertPulse 1.5s infinite;
 }
 
+
 @keyframes alertPulse {
     0% {
         opacity: 0.8;
-        transform: scale(1);
+        
     }
     50% {
         opacity: 1;
-        transform: scale(1.02);
+        
     }
     100% {
         opacity: 0.8;
-        transform: scale(1);
+        
     }
 }
 
@@ -474,9 +455,7 @@ body::before {
     gap: 6px;
 }
 
-/* ================================================================
-   8.0 กราฟ (Chart Container)
-   ================================================================ */
+
 .chart-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 28px;
@@ -486,9 +465,7 @@ body::before {
     backdrop-filter: blur(2px);
 }
 
-/* ================================================================
-   9.0 ปุ่มควบคุม (Controls & Buttons)
-   ================================================================ */
+
 .controls {
     display: flex;
     gap: clamp(10px, 2vw, 16px);
@@ -528,9 +505,7 @@ button.danger {
     background: linear-gradient(105deg, #c62828, #b71c1c);
 }
 
-/* ================================================================
-   10.0 Modal พื้นฐาน (Modal Overlay & Content)
-   ================================================================ */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -538,7 +513,7 @@ button.danger {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px); 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -569,7 +544,6 @@ button.danger {
     }
 }
 
-/* ปรับปรุง Header ของ Modal */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -577,7 +551,6 @@ button.danger {
     border-bottom: 2px solid #a5d6a7;
     padding-bottom: 16px;
     margin-bottom: 24px;
-    position: relative; /* สำหรับจัดตำแหน่ง */
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -590,12 +563,11 @@ button.danger {
     gap: 12px;
 }
 
-/* ปรับปรุงปุ่มปิด */
 .close-btn {
     background: #e8f5e9;
     color: #2d7a2d;
     border: none;
-    border-radius: 50%; /* ให้เป็นวงกลม */
+    border-radius: 50%;
     width: 40px;
     height: 40px;
     display: flex;
@@ -605,22 +577,21 @@ button.danger {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
 }
 
 .close-btn:hover {
     background: #c8e6c9;
-    transform: rotate(90deg) scale(1.1); /* เพิ่มลูกเล่นตอน hover */
+    transform: rotate(90deg) scale(1.1);
     color: #c62828;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .close-btn:active {
     transform: scale(0.95);
 }
 
-/* เพิ่มส่วนรองรับหน้าจอมือถือให้ปุ่มชัดเจนขึ้น */
 @media (max-width: 640px) {
     .modal-header {
         padding-bottom: 12px;
@@ -635,9 +606,8 @@ button.danger {
         font-size: 1rem;
     }
 }
-/* ================================================================
-   11.0 ฟอร์มจัดการผู้ใช้ (User Management Form)
-   ================================================================ */
+
+
 .user-management-form {
     background: #f1f8e9;
     border-radius: 24px;
@@ -673,9 +643,7 @@ button.danger {
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
-/* ================================================================
-   12.0 ระบบล็อกอิน (Login Overlay)
-   ================================================================ */
+
 .login-overlay {
     position: fixed;
     top: 0;
@@ -852,12 +820,15 @@ input[type="password"]:focus {
 
 .custom-checkbox span {
     font-size: 0.85rem;
-    color: #e2e8f0;
+    color: #0070C0;
 }
 
-/* ================================================================
-   13.0 ตารางผู้ใช้ (User Table)
-   ================================================================ */
+.remember-text {
+    color: #0070C0 !important;  
+    font-weight: 800;
+}
+
+
 .user-table-wrapper,
 .device-table-wrapper {
     width: 100%;
@@ -913,9 +884,7 @@ input[type="password"]:focus {
     background-color: #ffffff;
 }
 
-/* ================================================================
-   14.0 ตารางอุปกรณ์ (Device Table)
-   ================================================================ */
+
 .device-table {
     width: 100%;
     min-width: 1100px;
@@ -1024,9 +993,7 @@ input[type="password"]:focus {
     color: #b71c1c;
 }
 
-/* ================================================================
-   15.0 ระดับน้ำและสถานะ (Water Level & Status)
-   ================================================================ */
+
 .flood-status-critical {
     background: #c62828;
     color: white;
@@ -1129,9 +1096,7 @@ input[type="password"]:focus {
     background: #c62828;
 }
 
-/* ================================================================
-   16.0 สรุปสถานะ (Status Summary Container)
-   ================================================================ */
+
 .status-summary-container {
     margin-top: 30px;
     background: #1e293b;
@@ -1172,9 +1137,7 @@ input[type="password"]:focus {
     text-align: center;
 }
 
-/* ================================================================
-   17.0 ปุ่มสลับและแจ้งเตือน (Toggle & Alert Buttons)
-   ================================================================ */
+
 .toggle-alert-btn {
     background: #ef4444;
     color: white;
@@ -1216,9 +1179,7 @@ input[type="password"]:focus {
     border-color: #64748b;
 }
 
-/* ================================================================
-   18.0 การตั้งค่าระดับแบบอินไลน์ (Level Config Inline)
-   ================================================================ */
+
 .level-config-inline {
     background: #0f172a;
     padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 16px);
@@ -1345,9 +1306,7 @@ input[type="password"]:focus {
     font-size: clamp(0.45rem, 1.5vw, 0.6rem);
 }
 
-/* ================================================================
-   19.0 แบดจ์ระดับแบบกำหนดเอง (Custom Level Badges)
-   ================================================================ */
+
 .device-table .level-badge-custom {
     display: inline-block;
     padding: clamp(1px, 0.5vw, 1px) clamp(4px, 1.5vw, 6px);
@@ -1378,9 +1337,7 @@ input[type="password"]:focus {
     background: #6366f1;
 }
 
-/* ================================================================
-   20.0 แถบเลื่อน (Scrollbar)
-   ================================================================ */
+
 ::-webkit-scrollbar {
     width: clamp(6px, 1.5vw, 8px);
     height: clamp(6px, 1.5vw, 8px);
@@ -1396,9 +1353,7 @@ input[type="password"]:focus {
     background: #2d7a2d;
 }
 
-/* ================================================================
-   21.0 Responsive (Media Queries)
-   ================================================================ */
+
 @media (max-width: 640px) {
     body {
         padding: 12px;
@@ -1490,7 +1445,6 @@ input[type="password"]:focus {
         font-size: clamp(0.7rem, 2.5vw, 0.9rem);
     }
 
-    /* Alert Enabled Wrapper Responsive */
     .alert-row-container {
         flex-direction: column;
         align-items: stretch;
@@ -1523,9 +1477,7 @@ input[type="password"]:focus {
     }
 }
 
-/* ================================================================
-   22.0 ส่วนช่วยเหลือ (Help Section)
-   ================================================================ */
+
 .help-section details {
     background: #1e293b;
     padding: 12px 16px;
@@ -1609,9 +1561,7 @@ input[type="password"]:focus {
     color: #94a3b8;
 }
 
-/* ================================================================
-   23.0 ฟุตเตอร์ (Footer)
-   ================================================================ */
+
 footer {
     position: fixed;
     bottom: 0;
@@ -1629,7 +1579,7 @@ footer .footer-content {
     justify-content: center;
     gap: clamp(6px, 1.5vw, 10px);
     background: rgba(0, 50, 150, 0.85);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px); 
     padding: clamp(8px, 2vw, 12px) clamp(16px, 5vw, 28px);
     border-radius: 50px;
     border: 3px solid rgba(255, 105, 180, 0.85);
@@ -1660,9 +1610,7 @@ footer .footer-content:hover {
     transition: all 0.3s ease;
 }
 
-/* ================================================================
-   24.0 คลาสเสริมและยูทิลิตี้ (Utilities)
-   ================================================================ */
+
 .role-hidden {
     display: none !important;
 }
@@ -1690,7 +1638,7 @@ footer .footer-content:hover {
     animation: blink 1.5s infinite;
 }
 
-/* Alert Enabled Wrapper - ปรับขนาดให้เท่ากับปุ่มบันทึก */
+
 .alert-enabled-wrapper {
     display: inline-flex;
     align-items: center;
@@ -1778,3 +1726,1328 @@ footer .footer-content:hover {
 .btn-small-reset:hover {
     background: #475569;
 }
+
+
+.alert-history-header {
+    color: #ffffff;
+    background-color: #1e293b;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.alert-history-header h4 {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.alert-history-header span {
+    color: #a5d6a7;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+
+.mute-settings-box {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mute-settings-box h3 {
+    color: #1e293b;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mute-settings-box label {
+    font-size: 1rem;
+    color: #334155;
+    font-weight: 600;
+}
+
+.mute-settings-box p {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 10px 0;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.mute-status-display {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+
+#globalAlertModal .modal-content {
+    max-width: 700px;
+    background: linear-gradient(145deg, #ffffff, #f0f7e8);
+    border-radius: 32px;
+    box-shadow: 0 35px 60px rgba(0, 0, 0, 0.25);
+    padding: clamp(20px, 5vw, 32px);
+}
+
+#globalAlertModal .modal-header {
+    background: transparent;
+    padding: 0 0 16px 0;
+    margin: 0 0 24px 0;
+    border-radius: 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+#globalAlertModal .modal-header h2 {
+    color: #1a3a5f;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: none;
+    opacity: 1;
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#globalAlertModal .close-btn {
+    background: #e8f5e9;
+    color: #2d7a2d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+#globalAlertModal .close-btn:hover {
+    background: #c8e6c9;
+    transform: rotate(90deg) scale(1.1);
+    color: #c62828;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+#globalAlertModal .setting-section {
+    background: #f1f8e9;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid #c8e6c9;
+    margin-bottom: 20px;
+}
+
+#globalAlertModal .setting-section h4 {
+    color: #1a3a5f;
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #c8e6c9;
+    padding-bottom: 8px;
+}
+
+#globalAlertModal .setting-section label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 6px 0;
+    color: #1a3a2a;
+    font-weight: 500;
+}
+
+#globalAlertModal .setting-section label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #4CAF50;
+    flex-shrink: 0;
+}
+
+#globalAlertModal .setting-section .status-text {
+    font-weight: 600;
+    color: #2d7a2d;
+}
+
+#globalAlertModal .setting-section .status-text.muted {
+    color: #c62828;
+}
+
+#globalAlertModal .setting-section .help-text {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 8px 0 0 34px;
+    line-height: 1.5;
+}
+
+#globalAlertModal .setting-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    #globalAlertModal .setting-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+#globalAlertModal .setting-grid .field-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: #2d6a3a;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+#globalAlertModal .setting-grid .field-group input[type="number"] {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #a5d6a7;
+    background: #ffffff;
+    color: #1a3a2a;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+#globalAlertModal .setting-grid .field-group input[type="number"]:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+}
+
+#globalAlertModal .setting-grid .field-group .hint-text {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: block;
+}
+
+#globalAlertModal .save-btn {
+    background: linear-gradient(105deg, #2d7a2d, #1a5a1a);
+    color: white;
+    border: none;
+    padding: clamp(10px, 2.5vw, 14px) clamp(18px, 4vw, 28px);
+    border-radius: 60px;
+    cursor: pointer;
+    font-size: clamp(0.7rem, 3vw, 0.95rem);
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.3px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+#globalAlertModal .save-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
+}
+
+#globalAlertModal .device-list-box {
+    background: #f8fafc;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-top: 20px;
+}
+
+#globalAlertModal .device-list-box h4 {
+    color: #1a3a5f;
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+#globalAlertModal .device-list-box .device-list {
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    color: #475569;
+    padding-right: 4px;
+}
+
+#globalAlertModal .device-list-box .device-list .empty-text {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+#globalAlertModal .device-list-box .device-list .device-tag {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #1a3a2a;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin: 3px 4px 3px 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border: 1px solid #c8e6c9;
+}
+
+#globalAlertModal .device-list-box .note-text {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 8px;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 8px;
+}
+
+#globalAlertModal .result-box {
+    margin-top: 15px;
+    display: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+}
+
+#globalAlertModal .result-box.success {
+    display: block;
+    background: #e8f5e9;
+    color: #1a5a1a;
+    border: 1px solid #a5d6a7;
+}
+
+#globalAlertModal .result-box.error {
+    display: block;
+    background: #fce4ec;
+    color: #b71c1c;
+    border: 1px solid #ef9a9a;
+}
+
+@media (max-width: 640px) {
+    #globalAlertModal .modal-content {
+        padding: 20px;
+        width: 98%;
+        margin: 10px;
+    }
+    
+    #globalAlertModal .modal-header {
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+    
+    #globalAlertModal .modal-header h2 {
+        font-size: clamp(1.1rem, 4.5vw, 1.4rem);
+    }
+    
+    #globalAlertModal .close-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    #globalAlertModal .setting-section {
+        padding: 12px 16px;
+    }
+}
+
+
+#deviceModal .modal-content {
+    background: linear-gradient(145deg, #ffffff, #f0f7e8);
+    border-radius: 32px;
+    box-shadow: 0 35px 60px rgba(0, 0, 0, 0.25);
+}
+
+#deviceModal .modal-header {
+    background: transparent;
+    padding: 0 0 16px 0;
+    margin: 0 0 20px 0;
+    border-radius: 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+#deviceModal .modal-header h2 {
+    color: #1a3a5f;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#deviceModal section h3 {
+    color: #1a3a5f;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#deviceModal .user-management-form {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: clamp(16px, 3vw, 24px);
+    border: 1px solid #e2e8f0;
+}
+
+#deviceModal .user-management-form h3 {
+    color: #1a3a5f;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+#deviceModal input[type="text"],
+#deviceModal input[type="number"],
+#deviceModal select {
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#deviceModal input[type="text"]:focus,
+#deviceModal input[type="number"]:focus,
+#deviceModal select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+#deviceModal input[type="text"]::placeholder,
+#deviceModal input[type="number"]::placeholder {
+    color: #94a3b8;
+}
+
+#deviceModal .save-btn {
+    background: linear-gradient(105deg, #2d7a2d, #1a5a1a);
+    color: white;
+    border: none;
+    padding: clamp(8px, 2vw, 12px) clamp(16px, 3vw, 22px);
+    border-radius: 60px;
+    cursor: pointer;
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#deviceModal .save-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+#deviceModal .btn-small {
+    background: #e2e8f0;
+    color: #1e293b;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#deviceModal .btn-small:hover {
+    background: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+#deviceModal .btn-small-reset {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#deviceModal .btn-small-reset:hover {
+    background: #475569;
+    transform: translateY(-2px);
+}
+
+#deviceModal .level-config-inline {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+#deviceModal .level-config-inline h4 {
+    color: #1a3a5f;
+}
+
+#deviceModal .level-config-inline .levels-grid-inline .level-item-inline {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+#deviceModal .level-config-inline .level-item-inline .level-header .level-name {
+    color: #1e293b;
+}
+
+#deviceModal .level-config-inline .level-item-inline .level-inputs input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 4px;
+}
+
+#deviceModal .level-config-inline .level-item-inline .level-label-input {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+}
+
+#deviceModal .advanced-alert-config {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+#deviceModal .advanced-alert-config h4 {
+    color: #1a3a5f;
+}
+
+#deviceModal .advanced-alert-config label {
+    color: #475569;
+}
+
+#deviceModal .advanced-alert-config input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 6px;
+}
+
+#deviceModal .alert-config-panel {
+    background: #f8fafc;
+    border: 1px solid #4CAF50;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+#deviceModal .alert-config-panel h4 {
+    color: #1a3a5f;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+#deviceModal .alert-config-panel label {
+    color: #475569;
+}
+
+#deviceModal .alert-config-panel input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 6px;
+}
+
+#deviceModal .alert-enabled-wrapper {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 16px;
+    height: auto;
+    min-height: 48px;
+}
+
+#deviceModal .alert-enabled-wrapper .alert-label {
+    color: #1e293b;
+}
+
+#deviceModal .help-section details {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+}
+
+#deviceModal .help-section summary {
+    color: #2563eb;
+}
+
+#deviceModal .help-section .help-content {
+    border-top: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+#deviceModal .help-section .help-content code {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+#deviceModal .help-section .help-content .tip-box {
+    background: #f1f5f9;
+    border-left: 3px solid #2563eb;
+}
+
+#deviceModal .device-table-wrapper {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+#deviceModal .device-table thead th {
+    background: #f1f5f9;
+    color: #1a3a5f;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+#deviceModal .device-table td {
+    color: #1e293b !important;
+    font-weight: 500;
+}
+
+#deviceModal .device-table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+#deviceModal .device-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+#deviceModal .device-table tbody tr:hover {
+    background-color: #f1f5f9;
+    transition: background-color 0.2s ease;
+}
+
+#deviceModal .device-table .edit-btn {
+    background: #ffa726;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#deviceModal .device-table .edit-btn:hover {
+    background: #f57c00;
+    transform: translateY(-1px);
+}
+
+#deviceModal .device-table .danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#deviceModal .device-table .danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+#deviceModal #sensorDiscoverySection {
+    background: #f0f7ff;
+    border: 1px dashed #3b82f6;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+#deviceModal #sensorDiscoverySection h4 {
+    color: #1a3a5f;
+}
+
+#deviceModal #sensorDiscoverySection .btn-small {
+    background: #3b82f6;
+    color: white;
+}
+
+#deviceModal #sensorDiscoverySection .btn-small:hover {
+    background: #2563eb;
+}
+
+#deviceModal #autoGenerateContainer,
+#deviceModal #riverModeContainer {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+#deviceModal #autoGenerateContainer span,
+#deviceModal #riverModeContainer span {
+    color: #475569;
+}
+
+#deviceModal #autoGenerateContainer input[type="number"],
+#deviceModal #riverModeContainer input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 4px;
+}
+
+#deviceModal #templateSelectorContainer {
+    background: transparent;
+}
+
+#deviceModal #templateSelectorContainer select {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+#deviceModal #searchBoard,
+#deviceModal #searchSensor {
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+#deviceModal #searchBoard::placeholder,
+#deviceModal #searchSensor::placeholder {
+    color: #94a3b8;
+}
+
+#deviceModal #searchBoard:focus,
+#deviceModal #searchSensor:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#deviceModal .alert-history-header {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+#deviceModal .alert-history-header h4 {
+    color: #1a3a5f;
+}
+
+#deviceModal .alert-history-header span {
+    color: #64748b;
+}
+
+#deviceModal #alertHistoryDeviceSelect {
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+#deviceModal #alertHistoryContainer {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+#deviceModal #boundaryInputsContainer input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 4px;
+}
+
+#deviceModal #boundaryInputsContainer span {
+    color: #475569;
+}
+
+#deviceModal #customTypeContainer input[type="text"] {
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    color: #1e293b;
+    border-radius: 8px;
+}
+
+#deviceModal select option {
+    background: #ffffff;
+    color: #1e293b;
+}
+
+#deviceModal .close-btn {
+    background: #e8f5e9;
+    color: #2d7a2d;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+#deviceModal .close-btn:hover {
+    background: #c8e6c9;
+    transform: rotate(90deg) scale(1.1);
+    color: #c62828;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+#deviceModal #riverModeContainer .btn-small {
+    background: #10b981;
+    color: white;
+}
+
+#deviceModal #riverModeContainer .btn-small:hover {
+    background: #059669;
+}
+
+#autoGenerateContainer button[type="button"] {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 4px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+#autoGenerateContainer button[type="button"]:hover {
+    background: #2563eb;
+}
+
+#deviceModal .level-config-inline .btn-small {
+    background: #ef4444;
+    color: white;
+}
+
+#deviceModal .level-config-inline .btn-small:hover {
+    background: #dc2626;
+}
+
+#deviceModal .toggle-table-btn {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #64748b;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+#deviceModal .toggle-table-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+
+.device-table th,
+.device-table td,
+.user-table th,
+.user-table td {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.sensor-title,
+.sensor-value,
+.sensor-unit,
+.timestamp,
+.status-bar,
+.user-name,
+.connection-status,
+.sync-status {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-weight: 500;
+    text-rendering: optimizeLegibility;
+}
+
+.modal-content,
+.modal-header h2,
+.help-section,
+.level-config-inline {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+footer .copyright-text,
+footer .copyright-icon {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.login-header h2,
+.login-header p,
+.login-box label,
+.login-box input {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.alert-badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.chart-container {
+    font-family: 'Segoe UI', 'Prompt', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+
+
+.signal-bars {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+    margin-right: 6px;
+}
+
+
+.signal-bars .bar {
+    width: 4px;
+    background-color: #cbd5e1;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.signal-bars .bar-1 { height: 4px; }
+.signal-bars .bar-2 { height: 7px; }
+.signal-bars .bar-3 { height: 10px; }
+.signal-bars .bar-4 { height: 13px; }
+
+
+.signal-bars.signal-strong .bar {
+    background-color: #4caf50;
+}
+.signal-bars.signal-strong .bar {
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
+}
+
+
+.signal-bars.signal-mid .bar {
+    background-color: #ff9800;
+}
+.signal-bars.signal-mid .bar {
+    box-shadow: 0 0 6px rgba(255, 152, 0, 0.3);
+}
+
+
+.signal-bars.signal-low .bar {
+    background-color: #d32f2f;
+}
+.signal-bars.signal-low .bar {
+    box-shadow: 0 0 6px rgba(211, 47, 47, 0.3);
+}
+
+
+.signal-bars.signal-strong .bar {
+    animation: signalPulse 1.8s infinite ease-in-out;
+}
+.signal-bars.signal-strong .bar-1 { animation-delay: 0s; }
+.signal-bars.signal-strong .bar-2 { animation-delay: 0.2s; }
+.signal-bars.signal-strong .bar-3 { animation-delay: 0.4s; }
+.signal-bars.signal-strong .bar-4 { animation-delay: 0.6s; }
+
+@keyframes signalPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; transform: scaleY(1.05); }
+}
+
+
+@media (max-width: 640px) {
+    .signal-bars {
+        height: 12px;
+        gap: 2px;
+    }
+    .signal-bars .bar {
+        width: 3px;
+    }
+    .signal-bars .bar-1 { height: 3px; }
+    .signal-bars .bar-2 { height: 6px; }
+    .signal-bars .bar-3 { height: 9px; }
+    .signal-bars .bar-4 { height: 12px; }
+}
+
+
+.signal-rssi-text {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-left: 2px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+
+.signal-bars.no-data .bar {
+    background-color: #475569;
+    opacity: 0.4;
+}
+
+.signal-bars.no-data {
+    opacity: 0.6;
+}
+
+
+.signal-rssi-strong {
+    color: #4caf50;
+}
+.signal-rssi-mid {
+    color: #ff9800;
+}
+.signal-rssi-low {
+    color: #d32f2f;
+}
+.signal-rssi-unknown {
+    color: #64748b;
+}
+
+#adminMenuModal .close-btn {
+    position: static !important; 
+    margin: 0 !important;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0; 
+}
+
+
+#adminMenuModal .modal-content button.danger,
+#adminMenuModal .modal-content button[style*="background-color"] {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-radius: 12px;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+#adminMenuModal .modal-content button:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+
+#adminMenuModal {
+    transition: opacity 0.3s ease;
+}
+
+#adminMenuModal.modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+#boardDetailStatus {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    display: none;
+    margin-top: 4px;
+    padding: 4px 12px;
+    background: #0f172a;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+    transition: all 0.3s ease;
+}
+
+#boardSelector {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+    max-width: 150px;
+}
+
+#boardSelector:hover {
+    border-color: #60a5fa;
+}
+
+#boardSelector:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+
+
+
+#boardDetailStatus {
+    display: none;
+    margin-top: 4px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    color: #1e293b;
+}
+
+
+#boardSelector {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+    max-width: 180px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+#boardSelector:hover {
+    border-color: #60a5fa;
+    background: #f8fafc;
+}
+
+#boardSelector:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+
+#espStatusContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 18px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    margin-bottom: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    color: #1e293b;
+}
+
+
+.signal-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 18px;
+    padding: 2px 4px;
+}
+
+.signal-bars .bar {
+    width: 4px;
+    border-radius: 2px;
+    background: #4ade80;
+    transition: all 0.3s ease;
+}
+
+.signal-bars .bar-1 { height: 4px; }
+.signal-bars .bar-2 { height: 8px; }
+.signal-bars .bar-3 { height: 12px; }
+.signal-bars .bar-4 { height: 16px; }
+
+.signal-strong .bar { background: #22c55e; }
+.signal-mid .bar { background: #f59e0b; }
+.signal-low .bar { background: #ef4444; }
+
+
+.connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.connection-status.online {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.connection-status.offline {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+
+.sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #16a34a;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    background: rgba(34, 197, 94, 0.08);
+    border-radius: 20px;
+    border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+
+@media (max-width: 768px) {
+    .status-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 14px;
+    }
+    
+    #espStatusContainer {
+        gap: 8px;
+    }
+    
+    #boardDetailStatus {
+        padding: 10px 14px;
+    }
+    
+    #boardDetailStatus > div {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+    
+    #boardDetailStatus .border-left {
+        border-left: none !important;
+        padding-left: 0 !important;
+        padding-top: 6px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .sync-status {
+        align-self: flex-start;
+    }
+    
+    #boardSelector {
+        max-width: 140px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-bar {
+        padding: 8px 10px;
+        border-radius: 12px;
+    }
+    
+    #boardDetailStatus {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .connection-status {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+    }
+    
+    .sync-status {
+        font-size: 0.7rem;
+        padding: 3px 10px;
+    }
+}
+
+.user-info {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    display: flex;
+    flex-direction: column; 
+    gap: 8px;
+    background: rgba(45, 122, 45, 0.95); 
+    backdrop-filter: blur(8px); 
+    padding: 10px 16px;
+    border-radius: 24px; 
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    min-width: 250px; 
+}
+
+
+.online-users-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 12px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.project-title-box {
+    background-color: ##0070C0 !important; 
+    color: #ffffff !important;           
+    border: 3px solid #ff69b4 !important; 
+    padding: 15px 30px !important;       
+    border-radius: 20px !important;      
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    display: inline-block !important;    
+    text-align: center !important;       
+}}
